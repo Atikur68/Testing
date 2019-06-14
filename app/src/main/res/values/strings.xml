@@ -1,0 +1,38 @@
+<resources>
+    <string name="app_name">FlarzeHashStash</string>
+    <string name="skip">SKIP</string>
+    <string name="gotit">GOT IT</string>
+
+    <string name="hash_title">Don\'t go solo. Review places of interest, collaboratively.</string>
+    <string name="sign_in">SIGN IN</string>
+    <string name="text_term_condition">By using this app, you agree to the Terms and Privacy Policy.</string>
+
+    <string name="reviews">SICK OF NOISY REVIEWS</string>
+    <string name="share">GIVING BUT NOT RECEIVING</string>
+    <string name="social">LACKING SOCIAL PRESENCE</string>
+
+    <string name="noisy_reviews">Share your temporary experiences anywhere through short hash tags</string>
+    <string name="share_time">Stash your hash tagged experiences at specific locations to gain discounts at partnered locations </string>
+    <string name="social_network_hint">Share your hashmaps to gain more supporters and connect with new people</string>
+    <string name="nav_header_contry">USA</string>
+    <string name="title_activity_hash_map">HashMapActivity</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="nav_header_title">Android Studio</string>
+    <string name="nav_header_subtitle">android.studio@android.com</string>
+    <string name="nav_header_desc">Navigation header</string>
+    <string name="action_settings">Settings</string>
+
+    <string name="menu_home">Home</string>
+    <string name="menu_gallery">Gallery</string>
+    <string name="menu_slideshow">Slideshow</string>
+    <string name="menu_tools">Tools</string>
+    <string name="menu_share">Share</string>
+    <string name="menu_send">Send</string>
+    <string name="title_activity_main">MainActivity</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="store_name">Krispy Kreme</string>
+    <string name="title_activity_maps">Map</string>
+</resources>

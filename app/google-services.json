@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "751609485339",
+    "firebase_url": "https://flarzehashstash.firebaseio.com",
+    "project_id": "flarzehashstash",
+    "storage_bucket": "flarzehashstash.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:751609485339:android:3f3ceb7512f73fbb",
+        "android_client_info": {
+          "package_name": "com.example.flarzehashstash"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "751609485339-po272gesrpagt205bu71ai4re3v2ufdg.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.flarzehashstash",
+            "certificate_hash": "5d93c6078b43795b90a483c862682ca52390816e"
+          }
+        },
+        {
+          "client_id": "751609485339-vokt84u937mln48b5n6r28mkn3atmkh7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDmlytYxT8rdDDWwfJGXaVb5uoNdVjsF_g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "751609485339-vokt84u937mln48b5n6r28mkn3atmkh7.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
