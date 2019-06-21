@@ -37,6 +37,7 @@ public class MainActivity extends AppCompatActivity
 
     Button btn_check;
     ImageView userProfilePic;
+    String navOption;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,7 +64,10 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-
+        Bundle bundle = getIntent().getExtras();
+        if (bundle != null) {
+            navOption = bundle.getString("main");
+        }
 
 
 
@@ -85,9 +89,26 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
-        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-        ft.replace(R.id.mainFrame, new HashFragment());
-        ft.commit();
+        if(navOption.contains("invite friends")){
+
+            FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+            ft.replace(R.id.mainFrame, new InviteFriend());
+            ft.commit();
+
+
+        }
+        if (navOption.contains("hash list")){
+
+            FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+            ft.replace(R.id.mainFrame, new HashFragment());
+            ft.commit();
+
+
+        }
+
+//        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+//        ft.replace(R.id.mainFrame, new HashFragment());
+//        ft.commit();
     }
 
     @Override

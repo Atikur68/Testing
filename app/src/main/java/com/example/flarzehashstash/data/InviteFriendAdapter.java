@@ -99,7 +99,7 @@ public class InviteFriendAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         TextView invitefriendName,inviteFriendNumber;
         CircularImageView mapLocationImage;
         LinearLayout container;
-        Button addbutton;
+        TextView addbutton;
 
         public UserViewHolder(View itemView) {
             super(itemView);

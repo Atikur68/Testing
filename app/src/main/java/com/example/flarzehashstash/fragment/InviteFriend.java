@@ -42,9 +42,9 @@ public class InviteFriend extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         view = inflater.inflate(R.layout.fragment_invite_friend, container, false);
+        getActivity().setTitle("Invite Friends");
+
         invitefriendrecyclerView = view.findViewById(R.id.invitefriendrecycle);
-
-
         invitefriendrecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         invitefriendrecyclerView.setHasFixedSize(true);
 

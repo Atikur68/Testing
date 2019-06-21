@@ -1,6 +1,7 @@
 package com.example.flarzehashstash.activity;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.location.Geocoder;
 import android.location.Location;
@@ -25,10 +26,12 @@ import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -37,6 +40,8 @@ import com.example.flarzehashstash.R;
 import com.example.flarzehashstash.data.FriendList_adapter;
 import com.example.flarzehashstash.data.Hash_List;
 import com.example.flarzehashstash.data.Hash_adapter;
+import com.example.flarzehashstash.data.ScreenshotType;
+import com.example.flarzehashstash.data.ScreenshotUtils;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -50,6 +55,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.mikhaellopez.circularimageview.CircularImageView;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Hashtable;
@@ -77,6 +83,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private LinearLayout camera_emoji_layout, hash_button_layout, friendlist_layout_maps;
     private EditText edt_hash_comment;
     private Animation leftToRight, rightToLeft;
+    private Switch hashStashSwitch;
+    private TextView switchText;
 
     RecyclerView recyclerView;
     FriendList_adapter adapter;
@@ -116,6 +124,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         btn_world_maps = findViewById(R.id.btn_world_maps);
         btn_share_maps = findViewById(R.id.btn_share_maps);
         friendlist_layout_maps = findViewById(R.id.friendlist_layout_maps);
+        rootContent = (RelativeLayout) findViewById(R.id.root_content);
+        hashStashSwitch =  findViewById(R.id.hashStashSwitch);
+        switchText =  findViewById(R.id.switchText);
         //   userProfilePic = findViewById(R.id.userProfilePic);
 
         DrawerLayout drawer = findViewById(R.id.maps_drawer_layout);
@@ -142,6 +153,17 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         adapter = new FriendList_adapter(this, friendLists);
         recyclerView.setAdapter(adapter);
 
+
+        hashStashSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    switchText.setText("Hash");
+                } else {
+                    switchText.setText("Stash");
+                }
+            }
+        });
 
         userProfilePic.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -170,7 +192,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         btn_share_maps.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(MapsActivity.this, "Clicked", Toast.LENGTH_SHORT).show();
+                takeScreenshot(ScreenshotType.FULL);
             }
         });
 
@@ -231,7 +253,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         } else if (id == R.id.nav_aboutus) {
             startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://yahoo.com")));
         } else if (id == R.id.nav_share) {
-            startActivity(new Intent(this, MainActivity.class));
+
+            Intent intent=new Intent(this,MainActivity.class);
+            intent.putExtra("main","invite friends");
+            startActivity(intent);
         } else if (id == R.id.nav_rate) {
             startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://yahoo.com")));
         } else if (id == R.id.nav_logout) {
@@ -272,7 +297,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                     //    Toast.makeText(MapsActivity.this, "English", Toast.LENGTH_SHORT).show();
 
-                    startActivity(new Intent(MapsActivity.this, MainActivity.class));
+                    Intent intent=new Intent(MapsActivity.this,MainActivity.class);
+                    intent.putExtra("main","hash list");
+                    startActivity(intent);
 
 
                 }
@@ -281,21 +308,27 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 //                    Intent intent2 = new Intent(MapsActivity.this, German.class);
 //                    startActivity(intent2);
                     //  Toast.makeText(MapsActivity.this, "German", Toast.LENGTH_SHORT).show();
-                    startActivity(new Intent(MapsActivity.this, MainActivity.class));
+                    Intent intent=new Intent(MapsActivity.this,MainActivity.class);
+                    intent.putExtra("main","hash list");
+                    startActivity(intent);
                 }
 
                 if (arg0 != null && arg0.getTitle().equals("Italian")) {
 //                    Intent intent3 = new Intent(MapsActivity.this, Italian.class);
 //                    startActivity(intent3);
                     //  Toast.makeText(MapsActivity.this, "Italian", Toast.LENGTH_SHORT).show();
-                    startActivity(new Intent(MapsActivity.this, MainActivity.class));
+                    Intent intent=new Intent(MapsActivity.this,MainActivity.class);
+                    intent.putExtra("main","hash list");
+                    startActivity(intent);
                 }
 
                 if (arg0 != null && arg0.getTitle().equals("Spanish")) {
 //                    Intent intent4 = new Intent(MapsActivity.this, Spanish.class);
 //                    startActivity(intent4);
                     // Toast.makeText(MapsActivity.this, "Spanish", Toast.LENGTH_SHORT).show();
-                    startActivity(new Intent(MapsActivity.this, MainActivity.class));
+                    Intent intent=new Intent(MapsActivity.this,MainActivity.class);
+                    intent.putExtra("main","hash list");
+                    startActivity(intent);
                 }
             }
 
@@ -399,6 +432,43 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
         return address;
+    }
+
+    private void takeScreenshot(ScreenshotType screenshotType) {
+        Bitmap b = null;
+        switch (screenshotType) {
+            case FULL:
+                //If Screenshot type is FULL take full page screenshot i.e our root content.
+                b = ScreenshotUtils.getScreenShot(rootContent);
+                break;
+        }
+
+        //If bitmap is not null
+        if (b != null) {
+
+            File saveFile = ScreenshotUtils.getMainDirectoryName(this);//get the path to save screenshot
+            File file = ScreenshotUtils.store(b, "screenshot" + screenshotType + ".jpg", saveFile);//save the screenshot to selected path
+            shareScreenshot(file);//finally share screenshot
+        } else {
+            Toast.makeText(this, R.string.screenshot_take_failed, Toast.LENGTH_SHORT).show();
+        }
+
+
+    }
+
+    /*  Show screenshot Bitmap */
+
+
+    /*  Share Screenshot  */
+    private void shareScreenshot(File file) {
+        Uri uri = Uri.fromFile(file);//Convert file path into Uri for sharing
+        Intent intent = new Intent();
+        intent.setAction(Intent.ACTION_SEND);
+        intent.setType("image/*");
+        intent.putExtra(android.content.Intent.EXTRA_SUBJECT, "");
+        intent.putExtra(android.content.Intent.EXTRA_TEXT, getString(R.string.sharing_text));
+        intent.putExtra(Intent.EXTRA_STREAM, uri);//pass uri here
+        startActivity(Intent.createChooser(intent, getString(R.string.share_title)));
     }
 
 
