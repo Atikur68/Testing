@@ -72,7 +72,7 @@ public class InviteFriendAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
                     for (FriendList filteredlist : newfriendLists) {
 
-                        if (filteredlist.getFriendnumber().toLowerCase().contains(charString)) {
+                        if (filteredlist.getInvitefriendName().toLowerCase().contains(charString)) {
 
                             filteredList.add(filteredlist);
                         }

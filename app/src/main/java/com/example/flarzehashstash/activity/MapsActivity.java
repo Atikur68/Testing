@@ -146,7 +146,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         recyclerView.setLayoutManager(new LinearLayoutManager(MapsActivity.this, LinearLayoutManager.HORIZONTAL, false));
 
 
-        friendLists.add(new Hash_List(R.drawable.socialnetwork, "New"));
+        friendLists.add(new Hash_List(R.drawable.newfriend_icon, "New"));
         friendLists.add(new Hash_List(R.drawable.demoman, "You"));
         friendLists.add(new Hash_List(R.drawable.demoman, "John"));
         friendLists.add(new Hash_List(R.drawable.demoman, "Atik"));
