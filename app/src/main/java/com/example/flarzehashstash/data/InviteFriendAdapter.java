@@ -116,6 +116,7 @@ public class InviteFriendAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                     Intent intent=new Intent(Intent.ACTION_VIEW);
                     intent.setType("vnd.android-dir/mms-sms");
                     intent.putExtra("address",friendLists.get(getLayoutPosition()).getFriendnumber());
+                    intent.putExtra("sms_body","Enter your Sms here..");
                     mcontext.startActivity(intent);
 
 
