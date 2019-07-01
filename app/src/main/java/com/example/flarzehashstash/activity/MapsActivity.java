@@ -1,9 +1,9 @@
 package com.example.flarzehashstash.activity;
 
+import android.app.Dialog;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.location.Geocoder;
 import android.location.Location;
@@ -11,10 +11,8 @@ import android.location.LocationListener;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.design.widget.NavigationView;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -23,11 +21,8 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.Window;
-import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
@@ -40,13 +35,11 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
-
 import com.example.flarzehashstash.R;
 import com.example.flarzehashstash.data.FriendList_adapter;
 import com.example.flarzehashstash.data.Hash_List;
-import com.example.flarzehashstash.data.Hash_adapter;
-import com.example.flarzehashstash.data.ScreenshotType;
-import com.example.flarzehashstash.data.ScreenshotUtils;
+import com.example.flarzehashstash.data.LocationList;
+import com.example.flarzehashstash.data.LocationListAdapter;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -62,11 +55,9 @@ import com.mikhaellopez.circularimageview.CircularImageView;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Hashtable;
 import java.util.List;
 
@@ -87,7 +78,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private Marker myMarker;
     private Hashtable<String, String> markers;
     private Toolbar toolbar;
-    private Button btn_hash;
+    private Button btn_hash, btn_shash;
     private TextView txt_hash_start;
     private LinearLayout camera_emoji_layout, hash_button_layout, friendlist_layout_maps;
     private EditText edt_hash_comment;
@@ -95,15 +86,17 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private Switch hashStashSwitch;
     private TextView switchText;
 
-    RecyclerView recyclerView;
+    RecyclerView recyclerView, locationlistRecycler;
     FriendList_adapter adapter;
     List<Hash_List> friendLists = new ArrayList<>();
+    List<LocationList> locationLists = new ArrayList<>();
 
     private ImageView btn_share_maps, btn_world_maps, btn_friendlist_maps;
     private CircularImageView userProfilePic;
     private boolean status = true;
 
-    private String sharePath="no";
+    public Dialog dialog;
+    LocationListAdapter locationListAdapter;
 
 
     @Override
@@ -126,6 +119,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         // setSupportActionBar(toolbar);
 
         btn_hash = findViewById(R.id.btn_hash);
+        btn_shash = findViewById(R.id.btn_shash);
         txt_hash_start = findViewById(R.id.txt_hash_start);
         camera_emoji_layout = findViewById(R.id.camera_emoji_layout);
         hash_button_layout = findViewById(R.id.hash_button_layout);
@@ -136,8 +130,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         btn_share_maps = findViewById(R.id.btn_share_maps);
         friendlist_layout_maps = findViewById(R.id.friendlist_layout_maps);
         rootContent = (RelativeLayout) findViewById(R.id.root_content);
-        hashStashSwitch =  findViewById(R.id.hashStashSwitch);
-        switchText =  findViewById(R.id.switchText);
+        hashStashSwitch = findViewById(R.id.hashStashSwitch);
+        switchText = findViewById(R.id.switchText);
         //   userProfilePic = findViewById(R.id.userProfilePic);
 
         DrawerLayout drawer = findViewById(R.id.maps_drawer_layout);
@@ -164,6 +158,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         adapter = new FriendList_adapter(this, friendLists);
         recyclerView.setAdapter(adapter);
 
+        locationLists.add(new LocationList(R.mipmap.ic_launcher,"Bangladesh"));
+        locationLists.add(new LocationList(R.mipmap.ic_launcher,"England"));
+        locationLists.add(new LocationList(R.mipmap.ic_launcher,"America"));
+        locationLists.add(new LocationList(R.mipmap.ic_launcher,"Australia"));
+        locationListAdapter=new LocationListAdapter(locationLists,this);
+
 
         hashStashSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -186,7 +186,30 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         btn_hash.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(MapsActivity.this, "Clicked", Toast.LENGTH_SHORT).show();
+                dialog = new Dialog(MapsActivity.this);
+                dialog.setContentView(R.layout.location_list_layout);
+
+                locationlistRecycler = dialog.findViewById(R.id.locationlistRecycler);
+                locationlistRecycler.setHasFixedSize(false);
+                locationlistRecycler.setLayoutManager(new LinearLayoutManager(dialog.getContext()));
+                locationlistRecycler.setAdapter(locationListAdapter);
+                dialog.show();
+
+
+            }
+        });
+
+        btn_shash.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog = new Dialog(MapsActivity.this);
+                dialog.setContentView(R.layout.location_list_layout);
+
+                locationlistRecycler = dialog.findViewById(R.id.locationlistRecycler);
+                locationlistRecycler.setHasFixedSize(false);
+                locationlistRecycler.setLayoutManager(new LinearLayoutManager(dialog.getContext()));
+                locationlistRecycler.setAdapter(locationListAdapter);
+                dialog.show();
             }
         });
 
@@ -203,7 +226,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         btn_share_maps.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-               // takeScreenshot(ScreenshotType.FULL);
+                // takeScreenshot(ScreenshotType.FULL);
                 takeScreenshot();
             }
         });
@@ -211,7 +234,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         btn_world_maps.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(MapsActivity.this,MapsActivity.class));
+                startActivity(new Intent(MapsActivity.this, MapsActivity.class));
             }
         });
 
@@ -266,8 +289,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://yahoo.com")));
         } else if (id == R.id.nav_share) {
 
-            Intent intent=new Intent(this,MainActivity.class);
-            intent.putExtra("main","invite friends");
+            Intent intent = new Intent(this, MainActivity.class);
+            intent.putExtra("main", "invite friends");
             startActivity(intent);
         } else if (id == R.id.nav_rate) {
             startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://yahoo.com")));
@@ -295,42 +318,23 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public void onInfoWindowClick(Marker arg0) {
                 if (arg0 != null && arg0.getTitle().equals("English")) {
-//                    Intent intent1 = new Intent(MapsActivity.this, English.class);
-//                    startActivity(intent1);
-//                    LatLng latLng = arg0.getPosition();
-//                    anotherMarker(latLng);
-//                    arg0.remove();
 
-//                    mMap.addMarker(new MarkerOptions()
-//                            .position(arg0.getPosition())
-//                            .title("German")
-//                            .icon(BitmapDescriptorFactory.fromResource(R.drawable.custom_marker))
-//                            .snippet("Click on me: Here)"));
-
-                    //    Toast.makeText(MapsActivity.this, "English", Toast.LENGTH_SHORT).show();
-
-                    Intent intent=new Intent(MapsActivity.this,MainActivity.class);
-                    intent.putExtra("main","hash list");
+                    Intent intent = new Intent(MapsActivity.this, MainActivity.class);
+                    intent.putExtra("main", "hash list");
                     startActivity(intent);
 
 
                 }
 
                 if (arg0 != null && arg0.getTitle().equals("German")) {
-//                    Intent intent2 = new Intent(MapsActivity.this, German.class);
-//                    startActivity(intent2);
-                    //  Toast.makeText(MapsActivity.this, "German", Toast.LENGTH_SHORT).show();
-                    Intent intent=new Intent(MapsActivity.this,MainActivity.class);
-                    intent.putExtra("main","hash list");
+                    Intent intent = new Intent(MapsActivity.this, MainActivity.class);
+                    intent.putExtra("main", "hash list");
                     startActivity(intent);
                 }
 
                 if (arg0 != null && arg0.getTitle().equals("Italian")) {
-//                    Intent intent3 = new Intent(MapsActivity.this, Italian.class);
-//                    startActivity(intent3);
-                    //  Toast.makeText(MapsActivity.this, "Italian", Toast.LENGTH_SHORT).show();
-                    Intent intent=new Intent(MapsActivity.this,MainActivity.class);
-                    intent.putExtra("main","hash list");
+                    Intent intent = new Intent(MapsActivity.this, MainActivity.class);
+                    intent.putExtra("main", "hash list");
                     startActivity(intent);
                 }
 
@@ -338,8 +342,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 //                    Intent intent4 = new Intent(MapsActivity.this, Spanish.class);
 //                    startActivity(intent4);
                     // Toast.makeText(MapsActivity.this, "Spanish", Toast.LENGTH_SHORT).show();
-                    Intent intent=new Intent(MapsActivity.this,MainActivity.class);
-                    intent.putExtra("main","hash list");
+                    Intent intent = new Intent(MapsActivity.this, MainActivity.class);
+                    intent.putExtra("main", "hash list");
                     startActivity(intent);
                 }
             }
@@ -432,6 +436,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     }
 
+    public void dialogDismiss() {
+        dialog.dismiss();
+    }
+
     private String getAddressFromLatLng(LatLng latLng) {
         Geocoder geocoder = new Geocoder(this);
 
@@ -446,62 +454,33 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         return address;
     }
 
-    private void takeScreenshot(ScreenshotType screenshotType) {
-        Bitmap b = null;
-        switch (screenshotType) {
-            case FULL:
-                //If Screenshot type is FULL take full page screenshot i.e our root content.
-                b = ScreenshotUtils.getScreenShot(rootContent);
-                break;
-        }
-
-        //If bitmap is not null
-        if (b != null) {
-
-            File saveFile = ScreenshotUtils.getMainDirectoryName(this);//get the path to save screenshot
-            File file = ScreenshotUtils.store(b, "screenshot" + screenshotType + ".jpg", saveFile);//save the screenshot to selected path
-            shareScreenshot(file);//finally share screenshot
-        } else {
-            Toast.makeText(this, R.string.screenshot_take_failed, Toast.LENGTH_SHORT).show();
-        }
-
-
-    }
-
     /*  Show screenshot Bitmap */
 
     private void takeScreenshot() {
-        GoogleMap.SnapshotReadyCallback callback = new GoogleMap.SnapshotReadyCallback()
-        {
+        GoogleMap.SnapshotReadyCallback callback = new GoogleMap.SnapshotReadyCallback() {
 
             @Override
-            public void onSnapshotReady(Bitmap snapshot)
-            {
+            public void onSnapshotReady(Bitmap snapshot) {
                 // TODO Auto-generated method stub
-               Bitmap bitmap = snapshot;
+                Bitmap bitmap = snapshot;
 
                 OutputStream fout = null;
 
                 String filePath = System.currentTimeMillis() + ".jpeg";
 
-                try
-                {
+                try {
                     fout = openFileOutput(filePath, MODE_WORLD_READABLE);
 
                     // Write the string to the file
                     bitmap.compress(Bitmap.CompressFormat.JPEG, 90, fout);
                     fout.flush();
                     fout.close();
-                }
-                catch (FileNotFoundException e)
-                {
+                } catch (FileNotFoundException e) {
                     // TODO Auto-generated catch block
                     Log.d("ImageCapture", "FileNotFoundException");
                     Log.d("ImageCapture", e.getMessage());
                     filePath = "";
-                }
-                catch (IOException e)
-                {
+                } catch (IOException e) {
                     // TODO Auto-generated catch block
                     Log.d("ImageCapture", "IOException");
                     Log.d("ImageCapture", e.getMessage());
@@ -515,12 +494,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMap.snapshot(callback);
     }
 
-    public void openShareImageDialog(String filePath)
-    {
+    public void openShareImageDialog(String filePath) {
         File file = this.getFileStreamPath(filePath);
 
-        if(!filePath.equals(""))
-        {
+        if (!filePath.equals("")) {
             final ContentValues values = new ContentValues(2);
             values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
             values.put(MediaStore.Images.Media.DATA, file.getAbsolutePath());
@@ -530,28 +507,16 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             intent.setType("image/jpeg");
             intent.putExtra(android.content.Intent.EXTRA_STREAM, contentUriFile);
             startActivity(Intent.createChooser(intent, "Share Image"));
-        }
-        else
-        {
+        } else {
             //This is a custom class I use to show dialogs...simply replace this with whatever you want to show an error message, Toast, etc.
-          //  DialogUtilities.showOkDialogWithText(this, R.string.shareImageFailed);
+            //  DialogUtilities.showOkDialogWithText(this, R.string.shareImageFailed);
         }
     }
 
-    
+
 
 
     /*  Share Screenshot  */
-    private void shareScreenshot(File file) {
-        Uri uri = Uri.fromFile(file);//Convert file path into Uri for sharing
-        Intent intent = new Intent();
-        intent.setAction(Intent.ACTION_SEND);
-        intent.setType("image/*");
-        intent.putExtra(android.content.Intent.EXTRA_SUBJECT, "");
-        intent.putExtra(android.content.Intent.EXTRA_TEXT, getString(R.string.sharing_text));
-        intent.putExtra(Intent.EXTRA_STREAM, uri);//pass uri here
-        startActivity(Intent.createChooser(intent, getString(R.string.share_title)));
-    }
 
 
     private class CustomInfoWindowAdapter implements GoogleMap.InfoWindowAdapter {
