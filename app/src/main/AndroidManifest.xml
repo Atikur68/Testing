@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.flarzehashstash">
+    package="com.flarze.hashstash">
     <!--
          The ACCESS_COARSE/FINE_LOCATION permissions are not required to use
          Google Maps Android API v2, but you must specify either coarse or fine
@@ -24,12 +24,19 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".activity.SlideShowActivity"></activity>
+        <activity android:name="com.flarze.hashstash.activity.SignUpActivity"
+            android:label="Sign up"
+            android:theme="@style/AppTheme.NoActionBar" ></activity>
         <activity
-            android:name=".activity.UserProfileActivity"
+            android:name="com.flarze.hashstash.activity.VerifyPhoneActivity"
+            android:label="Sign in"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity android:name="com.flarze.hashstash.activity.SlideShowActivity" />
+        <activity
+            android:name="com.flarze.hashstash.activity.UserProfileActivity"
             android:label="Profile"
             android:theme="@style/AppTheme.NoActionBar" />
-        <activity android:name=".activity.MapCheckingActivity" />
+        <activity android:name="com.flarze.hashstash.activity.MapCheckingActivity" />
         <!--
              The API key for Google Maps-based APIs is defined as a string resource.
              (See the file "res/values/google_maps_api.xml").
@@ -43,7 +50,7 @@
             android:value="@string/google_maps_key" />
 
         <activity
-            android:name=".activity.MapsActivity"
+            android:name="com.flarze.hashstash.activity.MapsActivity"
             android:label="@string/title_activity_main"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
@@ -53,11 +60,11 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".activity.MainActivity"
+            android:name="com.flarze.hashstash.activity.MainActivity"
             android:label="@string/title_activity_main"
             android:theme="@style/AppTheme.NoActionBar" />
-        <activity android:name=".activity.SigninActivity" />
-        <activity android:name=".activity.WelcomeActivity">
+        <activity android:name="com.flarze.hashstash.activity.SigninActivity" />
+        <activity android:name="com.flarze.hashstash.activity.WelcomeActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

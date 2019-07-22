@@ -3,7 +3,7 @@ apply plugin: 'com.android.application'
 android {
     compileSdkVersion 28
     defaultConfig {
-        applicationId "com.example.flarzehashstash"
+        applicationId "com.flarze.hashstash"
         minSdkVersion 21
         targetSdkVersion 28
         versionCode 1
@@ -37,6 +37,28 @@ dependencies {
     implementation 'com.google.android.gms:play-services-location:15.0.0'
 
     implementation 'com.android.support:recyclerview-v7:28.0.0'
+
+    implementation 'com.chaos.view:pinview:1.4.1'
+
+    // firebase
+    implementation 'com.google.firebase:firebase-core:16.0.1'
+    implementation 'com.google.firebase:firebase-auth:16.0.2'
+    implementation 'com.google.firebase:firebase-messaging:17.1.0'
+
+    implementation 'com.mcxiaoke.volley:library:1.0.19'
+
+
+    implementation 'com.squareup.retrofit2:retrofit:2.4.0'
+    implementation 'com.squareup.retrofit2:adapter-rxjava2:2.4.0'
+    implementation 'com.squareup.retrofit2:converter-gson:2.4.0'
+
+    // OkHttp
+    implementation 'com.squareup.okhttp3:okhttp:3.10.0'
+    implementation 'com.squareup.okhttp3:logging-interceptor:3.0.1'
+
+    implementation 'com.squareup.okhttp:okhttp:2.3.0'
+    implementation 'org.jbundle.util.osgi.wrapped:org.jbundle.util.osgi.wrapped.org.apache.http.client:4.1.2'
+    implementation 'com.squareup.picasso:picasso:2.5.2'
 
 
     androidTestImplementation 'com.android.support.test:runner:1.0.2'

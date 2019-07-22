@@ -93,6 +93,7 @@
                 android:layout_width="270dp"
                 android:layout_height="40dp"
                 android:layout_gravity="center"
+                android:onClick="onClick"
                 android:background="@drawable/btn_signing_instragram"
                 android:gravity="center" />
 
