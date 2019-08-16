@@ -64,18 +64,18 @@
             android:textColor="@color/white"
             android:textColorHint="@color/white" />
 
-        <EditText
-            android:id="@+id/editTextPhone"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:digits="0123456789"
-            android:drawablePadding="10dp"
-            android:hint="Enter mobile number"
-            android:inputType="number"
-            android:text=""
-            android:textColor="@color/white"
-            android:textColorHint="@color/white" />
+        <!--<EditText-->
+            <!--android:id="@+id/editTextPhone"-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:layout_marginTop="20dp"-->
+            <!--android:digits="0123456789"-->
+            <!--android:drawablePadding="10dp"-->
+            <!--android:hint="Enter mobile number"-->
+            <!--android:inputType="number"-->
+            <!--android:text=""-->
+            <!--android:textColor="@color/white"-->
+            <!--android:textColorHint="@color/white" />-->
 
         <EditText
             android:id="@+id/editTextEmail"

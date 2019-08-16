@@ -16,9 +16,15 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.chaos.view.PinView;
 import com.flarze.hashstash.R;
 import com.flarze.hashstash.data.SharedPref;
+import com.flarze.hashstash.data.instagram_login.AppPreferences;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.TaskExecutors;
@@ -28,6 +34,9 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.PhoneAuthCredential;
 import com.google.firebase.auth.PhoneAuthProvider;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.concurrent.TimeUnit;
 
@@ -41,14 +50,17 @@ public class VerifyPhoneActivity extends AppCompatActivity {
     private RelativeLayout layoutPhone, layoutVerify;
     private FirebaseAuth mAuth;
     private InputMethodManager imm;
-    private String mobile;
+    public String mobile;
     private Toolbar toolBarPhoneVerify;
     private GestureDetectorCompat gestureDetectorCompat = null;
+    private AppPreferences appPreferences = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_verify_phone);
+
+        appPreferences = new AppPreferences(this);
 
 
         toolBarPhoneVerify = findViewById(R.id.toolBarPhoneVerify);
@@ -95,6 +107,7 @@ public class VerifyPhoneActivity extends AppCompatActivity {
                     editTextCode.setFocusable(true);
                     editTextCode.requestFocus();
                     imm.showSoftInput(editTextCode, InputMethodManager.SHOW_FORCED);
+                    getUser();
                 }
             }
         });
@@ -124,6 +137,57 @@ public class VerifyPhoneActivity extends AppCompatActivity {
             }
         }));
 
+    }
+
+    public void getUser() {
+        String urlSting = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/phone/";
+        String HttpUrl = urlSting.concat(mobile);
+
+        Toast.makeText(this, mobile, Toast.LENGTH_SHORT).show();
+
+        RequestQueue requestQueue;
+        requestQueue = Volley.newRequestQueue(VerifyPhoneActivity.this);
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, HttpUrl,
+                new com.android.volley.Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        try {
+                            final JSONObject jsonObject = new JSONObject(response);
+                            // Process your json here as required
+
+                            Toast.makeText(VerifyPhoneActivity.this, response, Toast.LENGTH_SHORT).show();
+                            Log.d("response:", response);
+
+                            appPreferences.putString(AppPreferences.TABLE_ID, jsonObject.getString("id"));
+                            appPreferences.putString(AppPreferences.USER_NAME, jsonObject.getString("username"));
+                            appPreferences.putString(AppPreferences.NAME, jsonObject.getString("name"));
+                            appPreferences.putString(AppPreferences.USER_PASSWORD, jsonObject.getString("password"));
+                            appPreferences.putString(AppPreferences.USER_PHONE, mobile);
+                            appPreferences.putString(AppPreferences.USER_EMAIL, jsonObject.getString("email"));
+                            appPreferences.putString(AppPreferences.USER_COUNTRY, jsonObject.getString("country"));
+                            appPreferences.putString(AppPreferences.PROFILE_PIC, jsonObject.getString("image"));
+
+                        } catch (JSONException e) {
+                            // Handle json exception as needed
+                        }
+                    }
+                },
+                new com.android.volley.Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError volleyError) {
+                        // startActivity(new Intent(VerifyPhoneActivity.this,SignUpActivity.class));
+                        appPreferences.clear();
+                    }
+                });
+
+        // Creating RequestQueue.
+        requestQueue = Volley.newRequestQueue(VerifyPhoneActivity.this);
+        // Adding the StringRequest object into requestQueue.
+        requestQueue.add(stringRequest);
+
+        // makeJsonObjectRequest();
+
+        // GetUserForNavigation("3103467261");
     }
 
     //the method is sending verification code
@@ -207,11 +271,19 @@ public class VerifyPhoneActivity extends AppCompatActivity {
 //                                    User user = new User();
 //                                    user.setPhone(mobile);
                             //verification successful we will start the profile activity
-                           // SharedPref.write(IS_LOGIN, true);
-                            Intent intent = new Intent(VerifyPhoneActivity.this, SignUpActivity.class);
-                            //  intent.putExtra("user", user);
-                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                            startActivity(intent);
+                            // SharedPref.write(IS_LOGIN, true);
+                            if (appPreferences.getString(AppPreferences.USER_NAME) == null) {
+                                Intent intent = new Intent(VerifyPhoneActivity.this, SignUpActivity.class);
+                                intent.putExtra("mobile", mobile);
+                                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                startActivity(intent);
+                            } else {
+                                Intent intent = new Intent(VerifyPhoneActivity.this, MapsActivity.class);
+                                  intent.putExtra("switch", "hash");
+                                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                startActivity(intent);
+                            }
+
                         } else {
 
                             //verification unsuccessful.. display an error message

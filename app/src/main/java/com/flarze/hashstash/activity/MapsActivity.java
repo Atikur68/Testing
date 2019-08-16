@@ -1,21 +1,31 @@
 package com.flarze.hashstash.activity;
 
+import android.Manifest;
 import android.app.Dialog;
 import android.content.ContentValues;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationListener;
+import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.provider.Settings;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.design.widget.NavigationView;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -33,15 +43,26 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.flarze.hashstash.R;
 import com.flarze.hashstash.data.FriendList_adapter;
+import com.flarze.hashstash.data.HashStashList;
 import com.flarze.hashstash.data.Hash_List;
 import com.flarze.hashstash.data.LocationList;
 import com.flarze.hashstash.data.LocationListAdapter;
 import com.flarze.hashstash.data.instagram_login.AppPreferences;
+import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
@@ -51,25 +72,44 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.karumi.dexter.Dexter;
+import com.karumi.dexter.PermissionToken;
+import com.karumi.dexter.listener.PermissionDeniedResponse;
+import com.karumi.dexter.listener.PermissionGrantedResponse;
+import com.karumi.dexter.listener.PermissionRequest;
+import com.karumi.dexter.listener.single.PermissionListener;
 import com.mikhaellopez.circularimageview.CircularImageView;
 import com.squareup.picasso.Picasso;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Hashtable;
 import java.util.List;
 
-public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, NavigationView.OnNavigationItemSelectedListener, LocationListener {
+import hani.momanii.supernova_emoji_library.Actions.EmojIconActions;
+import hani.momanii.supernova_emoji_library.Helper.EmojiconEditText;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
+
+public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, NavigationView.OnNavigationItemSelectedListener, com.google.android.gms.location.LocationListener, GoogleApiClient.ConnectionCallbacks,
+        GoogleApiClient.OnConnectionFailedListener {
 
     private GoogleMap mMap;
+    private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
     private static final int MULTIPLE_PERMISSION_REQUEST_CODE = 4;
     public static final int MY_PERMISSIONS_REQUEST_LOCATION = 99;
     View view, vi;
     Double lat, lan;
-    String lati, longi;
+    String latitude, longitude;
     private RelativeLayout rootContent;
     private MapView mapView;
     private Location mLastLocation;
@@ -79,28 +119,50 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private Marker myMarker;
     private Hashtable<String, String> markers;
     private Toolbar toolbar;
-    private Button btn_hash, btn_shash;
+    private Button btn_hash, btn_shash, stashCaptureButton, hashCaptureButton;
+    private ImageView stashEmojibtn, hashEmojibtn;
     private TextView txt_hash_start;
     private LinearLayout camera_emoji_layout, hash_button_layout, friendlist_layout_maps;
-    private EditText edt_hash_comment;
+    private EmojiconEditText edt_hash_comment, edt_shash_comment;
+    public String edt_hash_comment_str = "", edt_shash_comment_str = "";
     private Animation leftToRight, rightToLeft;
     private Switch hashStashSwitch;
     private TextView switchText;
 
-    RecyclerView recyclerView, locationlistRecycler;
-    FriendList_adapter adapter;
-    List<Hash_List> friendLists = new ArrayList<>();
-    List<LocationList> locationLists = new ArrayList<>();
+    private RecyclerView recyclerView, locationlistRecycler;
+    private FriendList_adapter adapter;
+    private List<Hash_List> friendLists = new ArrayList<>();
+    private List<LocationList> locationLists = new ArrayList<>();
+    private List<HashStashList> hashStashLists = new ArrayList<>();
+    private ArrayList<LatLng> locations = new ArrayList();
 
     private ImageView btn_share_maps, btn_world_maps, btn_friendlist_maps;
     private CircularImageView userProfilePic;
-    private TextView userName,userCountry;
+    private TextView userName, userCountry;
     private boolean status = true;
 
     public Dialog dialog;
     private LocationListAdapter locationListAdapter;
 
     private AppPreferences appPreferences = null;
+    private GoogleApiClient googleApiClient;
+    private LocationManager locationManager;
+    private com.google.android.gms.location.LocationListener listener;
+
+    private long UPDATE_INTERVAL = 2 * 1000;  /* 10 secs */
+    private long FASTEST_INTERVAL = 20000; /* 20 sec */
+    private LatLng latLng;
+    private boolean isPermission;
+    private Location mLocation;
+    private LocationManager mLocationManager;
+
+    Calendar calander;
+    public SimpleDateFormat simpledateformat, simpleTimeformate;
+    public String Date, Time, hashOrStash, userId, switchHashStash = "HASH";
+    EmojIconActions emojIconHash, emojIconStash;
+    final String TAG = MapsActivity.class.getSimpleName();
+    private String switching="",locationId="",url = null;
+
 
 
     @Override
@@ -108,69 +170,77 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         super.onCreate(savedInstanceState);
         setContentView(R.layout.maps_activity_main);
 
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
-
+        //mapInit();
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             getWindow().setStatusBarColor(Color.TRANSPARENT);
         }
 
         appPreferences = new AppPreferences(this);
+        // userId=appPreferences.getString(AppPreferences.TABLE_ID);
+        userId = "33";
+       // Toast.makeText(this, userId, Toast.LENGTH_SHORT).show();
 
-        //  getSupportActionBar().hide();
-        //  getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        toolbar = findViewById(R.id.toolbar_maps);
-        // setSupportActionBar(toolbar);
-
-        btn_hash = findViewById(R.id.btn_hash);
-        btn_shash = findViewById(R.id.btn_shash);
-        txt_hash_start = findViewById(R.id.txt_hash_start);
-        camera_emoji_layout = findViewById(R.id.camera_emoji_layout);
-        hash_button_layout = findViewById(R.id.hash_button_layout);
-        edt_hash_comment = findViewById(R.id.edt_hash_comment);
-        recyclerView = findViewById(R.id.friendlist_recycler);
-        btn_friendlist_maps = findViewById(R.id.btn_friendlist_maps);
-        btn_world_maps = findViewById(R.id.btn_world_maps);
-        btn_share_maps = findViewById(R.id.btn_share_maps);
-        friendlist_layout_maps = findViewById(R.id.friendlist_layout_maps);
-        rootContent = (RelativeLayout) findViewById(R.id.root_content);
-        hashStashSwitch = findViewById(R.id.hashStashSwitch);
-        switchText = findViewById(R.id.switchText);
-        //   userProfilePic = findViewById(R.id.userProfilePic);
-
-        DrawerLayout drawer = findViewById(R.id.maps_drawer_layout);
-        NavigationView navigationView = findViewById(R.id.nav_view_maps);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.addDrawerListener(toggle);
-        toggle.syncState();
-        navigationView.setNavigationItemSelectedListener(this);
+        switching=getIntent().getStringExtra("switch");
 
 
-        View hView = navigationView.getHeaderView(0);
+        calander = Calendar.getInstance();
+        simpledateformat = new SimpleDateFormat("dd-MM-yyyy");
+        simpleTimeformate = new SimpleDateFormat("HH:mm:ss");
+        Date = simpledateformat.format(calander.getTime());
+        Time = simpleTimeformate.format(calander.getTime());
 
-        userProfilePic = hView.findViewById(R.id.userProfilePic);
-        userName=hView.findViewById(R.id.userName);
-        Picasso.with(this).load(appPreferences.getString(AppPreferences.PROFILE_PIC)).into(userProfilePic);
-        userName.setText(appPreferences.getString(AppPreferences.USER_NAME));
-        recyclerView.setHasFixedSize(true);
-        recyclerView.setLayoutManager(new LinearLayoutManager(MapsActivity.this, LinearLayoutManager.HORIZONTAL, false));
+        viewById();
+
+        drawerInit();
+
+        friendListRecycler();
+
+        locationPermission();
+
+//        emojIconHash = new EmojIconActions(this, view, edt_hash_comment, hashEmojibtn);
+//        emojIconHash.ShowEmojIcon();
+//        emojIconHash.setIconsIds(R.drawable.ic_action_keyboard, R.drawable.happy_grey);
+//        emojIconHash.setKeyboardListener(new EmojIconActions.KeyboardListener() {
+//            @Override
+//            public void onKeyboardOpen() {
+//                Log.e(TAG, "Keyboard opened!");
+//            }
+//
+//            @Override
+//            public void onKeyboardClose() {
+//                Log.e(TAG, "Keyboard closed");
+//
+//            }
+//        });
 
 
-        friendLists.add(new Hash_List(R.drawable.newfriend_icon, "New"));
-        friendLists.add(new Hash_List(R.drawable.demoman, "You"));
-        friendLists.add(new Hash_List(R.drawable.demoman, "John"));
-        friendLists.add(new Hash_List(R.drawable.demoman, "Atik"));
-        adapter = new FriendList_adapter(this, friendLists);
-        recyclerView.setAdapter(adapter);
+//        emojIconStash = new EmojIconActions(this, view, edt_shash_comment, stashEmojibtn);
+//        emojIconStash.ShowEmojIcon();
+//        emojIconStash.setIconsIds(R.drawable.ic_action_keyboard, R.drawable.happy_grey);
+//        emojIconStash.setKeyboardListener(new EmojIconActions.KeyboardListener() {
+//            @Override
+//            public void onKeyboardOpen() {
+//                Log.e(TAG, "Keyboard opened!");
+//            }
+//
+//            @Override
+//            public void onKeyboardClose() {
+//                Log.e(TAG, "Keyboard closed");
+//
+//            }
+//        });
 
-        locationLists.add(new LocationList(R.mipmap.ic_launcher,"Bangladesh"));
-        locationLists.add(new LocationList(R.mipmap.ic_launcher,"England"));
-        locationLists.add(new LocationList(R.mipmap.ic_launcher,"America"));
-        locationLists.add(new LocationList(R.mipmap.ic_launcher,"Australia"));
-        locationListAdapter=new LocationListAdapter(locationLists,this);
+        /////////////////////////////////////////////////////
+//        if(switching.contains("stash")){
+//            hashStashSwitch.setChecked(false);
+//            switchText.setText("Stash");
+//            switchHashStash = "stash";
+//
+//        }else {
+//            switchText.setText("Hash");
+//            switchHashStash = "HASH";
+//        }
 
 
         hashStashSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -178,8 +248,15 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
                     switchText.setText("Hash");
+                    switchHashStash = "HASH";
+                    startLocationUpdates();
+
+
                 } else {
                     switchText.setText("Stash");
+                    switchHashStash = "stash";
+                    startLocationUpdates();
+
                 }
             }
         });
@@ -194,13 +271,17 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         btn_hash.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
+                edt_hash_comment_str = convertToUTF8(edt_hash_comment.getText().toString());
+                hashOrStash = "hash";
+
                 dialog = new Dialog(MapsActivity.this);
                 dialog.setContentView(R.layout.location_list_layout);
 
                 locationlistRecycler = dialog.findViewById(R.id.locationlistRecycler);
                 locationlistRecycler.setHasFixedSize(false);
                 locationlistRecycler.setLayoutManager(new LinearLayoutManager(dialog.getContext()));
-                locationlistRecycler.setAdapter(locationListAdapter);
+                locationListShown();
                 dialog.show();
 
 
@@ -210,13 +291,17 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         btn_shash.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
+                edt_shash_comment_str = convertToUTF8(edt_shash_comment.getText().toString());
+                hashOrStash = "stash";
+
                 dialog = new Dialog(MapsActivity.this);
                 dialog.setContentView(R.layout.location_list_layout);
 
                 locationlistRecycler = dialog.findViewById(R.id.locationlistRecycler);
                 locationlistRecycler.setHasFixedSize(false);
                 locationlistRecycler.setLayoutManager(new LinearLayoutManager(dialog.getContext()));
-                locationlistRecycler.setAdapter(locationListAdapter);
+                locationListShown();
                 dialog.show();
             }
         });
@@ -234,7 +319,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         btn_share_maps.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // takeScreenshot(ScreenshotType.FULL);
                 takeScreenshot();
             }
         });
@@ -242,7 +326,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         btn_world_maps.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(MapsActivity.this, MapsActivity.class));
+                Intent intent=new Intent(MapsActivity.this,MapsActivity.class);
+                intent.putExtra("switch","hash");
+                startActivity(intent);
             }
         });
 
@@ -265,8 +351,166 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
 
+    }
 
-        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
+
+    private void locationPermission() {
+
+        if (requestSinglePermission()) {
+            // Obtain the SupportMapFragment and get notified when the map is ready to be used.
+            //it was pre written
+            SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                    .findFragmentById(R.id.map);
+            mapFragment.getMapAsync(this);
+
+            mGoogleApiClient = new GoogleApiClient.Builder(this)
+                    .addConnectionCallbacks(this)
+                    .addOnConnectionFailedListener(this)
+                    .addApi(LocationServices.API)
+                    .build();
+
+            mLocationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+
+            checkLocation(); //check whether location service is enable or not in your  phone
+        }
+    }
+
+    private void drawerInit() {
+        DrawerLayout drawer = findViewById(R.id.maps_drawer_layout);
+        NavigationView navigationView = findViewById(R.id.nav_view_maps);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.addDrawerListener(toggle);
+        toggle.syncState();
+        navigationView.setNavigationItemSelectedListener(this);
+
+        // set username and pic on nav drawer
+        View hView = navigationView.getHeaderView(0);
+        userProfilePic = hView.findViewById(R.id.userProfilePic);
+        userName = hView.findViewById(R.id.userName);
+        Picasso.with(this).load(appPreferences.getString(AppPreferences.PROFILE_PIC)).into(userProfilePic);
+        userName.setText(appPreferences.getString(AppPreferences.USER_NAME));
+    }
+
+    private void friendListRecycler() {
+        recyclerView.setHasFixedSize(true);
+        recyclerView.setLayoutManager(new LinearLayoutManager(MapsActivity.this, LinearLayoutManager.HORIZONTAL, false));
+
+        friendLists.add(new Hash_List(R.drawable.newfriend_icon, "New"));
+        friendLists.add(new Hash_List(R.drawable.demoman, "You"));
+        friendLists.add(new Hash_List(R.drawable.demoman, "John"));
+        friendLists.add(new Hash_List(R.drawable.demoman, "Atik"));
+        adapter = new FriendList_adapter(this, friendLists);
+        recyclerView.setAdapter(adapter);
+    }
+
+    private void viewById() {
+        toolbar = findViewById(R.id.toolbar_maps);
+        btn_hash = findViewById(R.id.btn_hash);
+        btn_shash = findViewById(R.id.btn_shash);
+        txt_hash_start = findViewById(R.id.txt_hash_start);
+        camera_emoji_layout = findViewById(R.id.camera_emoji_layout);
+        hash_button_layout = findViewById(R.id.hash_button_layout);
+        edt_hash_comment = findViewById(R.id.edt_hash_comment);
+        edt_shash_comment = findViewById(R.id.edt_shash_comment);
+        recyclerView = findViewById(R.id.friendlist_recycler);
+        btn_friendlist_maps = findViewById(R.id.btn_friendlist_maps);
+        btn_world_maps = findViewById(R.id.btn_world_maps);
+        btn_share_maps = findViewById(R.id.btn_share_maps);
+        friendlist_layout_maps = findViewById(R.id.friendlist_layout_maps);
+        rootContent = (RelativeLayout) findViewById(R.id.root_content);
+        hashStashSwitch = findViewById(R.id.hashStashSwitch);
+        switchText = findViewById(R.id.switchText);
+        stashCaptureButton = findViewById(R.id.stashCaptureButton);
+        hashCaptureButton = findViewById(R.id.hashCaptureButton);
+        stashEmojibtn = findViewById(R.id.stashEmojibtn);
+        hashEmojibtn = findViewById(R.id.hashEmojibtn);
+
+    }
+
+    private void mapInit() {
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
+    }
+
+    private void locationListShown() {
+
+        //  String HttpUrl = "https://api.tomtom.com/search/2/search/store.json?key=7eIbPrsJGRDCSQzW4tSaa7N3nDtH03lj&lat=" + latitude + "&lon=" + longitude + "&radius=100000";
+        String HttpUrl = "https://api.tomtom.com/search/2/search/food.json?key=7eIbPrsJGRDCSQzW4tSaa7N3nDtH03lj&lat=23.777176&lon=90.399452&radius=100000";
+
+        RequestQueue requestQueue;
+        requestQueue = Volley.newRequestQueue(MapsActivity.this);
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, HttpUrl,
+                new com.android.volley.Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        if (response.contains("results")) {
+
+                            try {
+                                JSONObject obj = new JSONObject(response);
+
+                                JSONArray heroArray = obj.optJSONArray("results");
+                                //  locationLists.clear();
+
+                                for (int i = 0; i < heroArray.length(); i++) {
+
+                                    JSONObject heroObject = heroArray.getJSONObject(i);
+                                    String heroArrays = heroObject.getString("poi");
+
+
+                                    JSONObject heroObjectPosition = heroArray.getJSONObject(i);
+                                    String heroArraysPosition = heroObjectPosition.getString("position");
+
+                                    JSONObject object = new JSONObject(heroArrays);
+                                    String locationName = object.getString("name");
+
+                                    JSONObject objectCatagory = new JSONObject(heroArrays);
+                                    String locationCatagory = objectCatagory.getString("categorySet");
+
+                                  //  Toast.makeText(MapsActivity.this, locationCatagory, Toast.LENGTH_SHORT).show();
+
+                                    //JSONArray locationCatagory = objectCatagory.optJSONArray("categorySet");
+
+
+                                   // JSONObject objectId = locationCatagory.getJSONObject(i);
+                                  //  String locationId = objectId.getString("id");
+                                  //  String locationId = objectId.getString("id");
+//                                    String locationId = "123456789";
+
+                                    JSONObject objectPosition = new JSONObject(heroArraysPosition);
+                                    String locationPositionLat = objectPosition.getString("lat");
+                                    String locationPositionLon = objectPosition.getString("lon");
+
+
+                                    locationLists.add(new LocationList(R.mipmap.ic_launcher, locationName, locationPositionLat, locationPositionLon, "123456789"));
+
+                                }
+
+                                locationListAdapter = new LocationListAdapter(locationLists, MapsActivity.this);
+                                locationlistRecycler.setAdapter(locationListAdapter);
+
+                            } catch (JSONException e) {
+                                // pDialog.hide();
+                                e.printStackTrace();
+                            }
+
+
+                        } else {
+                            Toast.makeText(MapsActivity.this, "not found", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                },
+                new com.android.volley.Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError volleyError) {
+                        Toast.makeText(MapsActivity.this, "" + volleyError, Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+        // Creating RequestQueue.
+        requestQueue = Volley.newRequestQueue(MapsActivity.this);
+        // Adding the StringRequest object into requestQueue.
+        requestQueue.add(stringRequest);
+
 
     }
 
@@ -276,7 +520,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
-            super.onBackPressed();
+            //super.onBackPressed();
+            startActivity(new Intent(MapsActivity.this,SigninActivity.class));
         }
     }
 
@@ -317,6 +562,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
+
         markers = new Hashtable<String, String>();
 
         googleMap.setInfoWindowAdapter(new CustomInfoWindowAdapter());
@@ -325,124 +571,143 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             @Override
             public void onInfoWindowClick(Marker arg0) {
-                if (arg0 != null && arg0.getTitle().equals("English")) {
-
                     Intent intent = new Intent(MapsActivity.this, MainActivity.class);
                     intent.putExtra("main", "hash list");
+                    intent.putExtra("locationId", locationId);
+                    intent.putExtra("userId", userId);
+                    intent.putExtra("hashOrStash", switchHashStash);
                     startActivity(intent);
 
-
-                }
-
-                if (arg0 != null && arg0.getTitle().equals("German")) {
-                    Intent intent = new Intent(MapsActivity.this, MainActivity.class);
-                    intent.putExtra("main", "hash list");
-                    startActivity(intent);
-                }
-
-                if (arg0 != null && arg0.getTitle().equals("Italian")) {
-                    Intent intent = new Intent(MapsActivity.this, MainActivity.class);
-                    intent.putExtra("main", "hash list");
-                    startActivity(intent);
-                }
-
-                if (arg0 != null && arg0.getTitle().equals("Spanish")) {
-//                    Intent intent4 = new Intent(MapsActivity.this, Spanish.class);
-//                    startActivity(intent4);
-                    // Toast.makeText(MapsActivity.this, "Spanish", Toast.LENGTH_SHORT).show();
-                    Intent intent = new Intent(MapsActivity.this, MainActivity.class);
-                    intent.putExtra("main", "hash list");
-                    startActivity(intent);
-                }
             }
 
 
         });
-        LatLng greatBritain = new LatLng(51.30, -0.07);
-        LatLng germany = new LatLng(52.3107, 13.2430);
-        LatLng italy = new LatLng(41.53, 12.29);
-        LatLng spain = new LatLng(40.25, -3.41);
-        final Marker english = mMap.addMarker(new MarkerOptions()
-                .position(greatBritain)
-                .title("English")
-                .icon(BitmapDescriptorFactory.fromResource(R.drawable.dot_gap_icon))
-                .snippet("Click on me:)"));
-        markers.put(english.getId(), "");
 
-        final Marker german = mMap.addMarker(new MarkerOptions()
-                .position(germany)
-                .title("German")
-                .icon(BitmapDescriptorFactory.fromResource(R.drawable.dot_gap_icon))
-                .snippet("Click on me:)"));
-        markers.put(german.getId(), "");
+        getHashorStashWithinKm();
 
 
-        final Marker italian = mMap.addMarker(new MarkerOptions()
-                .position(italy)
-                .title("Italian")
-                .icon(BitmapDescriptorFactory.fromResource(R.drawable.dot_gap_icon))
-                .snippet("Click on me:)"));
-        markers.put(italian.getId(), "");
-
-        final Marker spanish = mMap.addMarker(new MarkerOptions()
-                .position(spain)
-                .title("Spanish")
-                .icon(BitmapDescriptorFactory.fromResource(R.drawable.dot_gap_icon))
-                .snippet("Click on me:)"));
-        markers.put(spanish.getId(), "");
-
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(greatBritain));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(germany));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(italy));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(spain));
         googleMap.animateCamera(CameraUpdateFactory.zoomTo(10), 2000, null);
 
 
-        // Add a marker in Sydney and move the camera
-//        LatLng sydney = new LatLng(-34, 151);
-//        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-//        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        if (latLng != null) {
+            // mMap.addMarker(new MarkerOptions().position(latLng).title("Marker in Current Location"));
+            mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+            mMap.animateCamera(CameraUpdateFactory.zoomTo(11));
+        }
+
+    }
+
+    private void getHashorStashWithinKm() {
+
+        String HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/" + userId + "/hash-or-stash/" + switchHashStash + "/coordinates/" + latitude + "/" + longitude+"/2.0";
+        //Toast.makeText(this, HttpUrl, Toast.LENGTH_SHORT).show();
+
+        RequestQueue requestQueue;
+        requestQueue = Volley.newRequestQueue(MapsActivity.this);
+        JsonArrayRequest jsArrayRequest = new JsonArrayRequest
+                (Request.Method.GET, HttpUrl, (JSONArray) null, new Response.Listener<JSONArray>() {
+
+
+                    @Override
+                    public void onResponse(JSONArray response) {
+
+                        try {
+
+                            hashStashLists.clear();
+                            locations.clear();
+                            mMap.clear();
+                            markers.clear();
+
+                            for (int i = 0; i < response.length(); i++) {
+
+                                JSONObject hashStash = response.getJSONObject(i);
+                                String hashStashId = hashStash.getString("id");
+                                String hashStashComments = hashStash.getString("comments");
+                                String hashStashcmtTime = hashStash.getString("cmtTime");
+                                String hashStashlocation = hashStash.getString("location");
+                                String hashStashlocationId = hashStash.getString("locationId");
+                                String hashStashlatitude = hashStash.getString("latitude");
+                                String hashStashlongitude = hashStash.getString("longitude");
+                                String hashStashduration = hashStash.getString("duration");
+
+                                Double lat = Double.parseDouble(hashStash.getString("latitude"));
+                                Double lan = Double.parseDouble(hashStash.getString("longitude"));
+
+                                locations.add(new LatLng(lat, lan));
+                                Marker mark = mMap.addMarker(new MarkerOptions()
+                                        .position(locations.get(i))
+                                        .title("" + i)
+                                        .icon(BitmapDescriptorFactory.fromResource(R.drawable.dot_gap_icon))
+                                        .snippet("Click on me:)"));
+                                markers.put(mark.getId(), ""+i);
+                                mMap.moveCamera(CameraUpdateFactory.newLatLng(locations.get(i)));
+
+                                Toast.makeText(MapsActivity.this, ""+mark.getId(), Toast.LENGTH_SHORT).show();
+
+                                hashStashLists.add(new HashStashList(hashStashId, hashStashComments, hashStashcmtTime, hashStashlocation, hashStashlocationId, hashStashlatitude, hashStashlongitude, hashStashduration));
+
+                            }
+
+                        } catch (JSONException e) {
+                            // pDialog.hide();
+                            e.printStackTrace();
+                        }
+
+
+                    }
+                },
+                        new Response.ErrorListener() {
+                            @Override
+                            public void onErrorResponse(VolleyError volleyError) {
+                                // Toast.makeText(MapsActivity.this, "" + volleyError, Toast.LENGTH_SHORT).show();
+                            }
+                        });
+
+        // Creating RequestQueue.
+        requestQueue = Volley.newRequestQueue(MapsActivity.this);
+        // Adding the StringRequest object into requestQueue.
+        requestQueue.add(jsArrayRequest);
+
     }
 
     @Override
     public void onLocationChanged(Location location) {
-        mLastLocation = location;
-        if (mCurrLocationMarker != null) {
-            mCurrLocationMarker.remove();
+
+        latLng = new LatLng(location.getLatitude(), location.getLongitude());
+
+        latitude = String.valueOf(location.getLatitude());
+        longitude = String.valueOf(location.getLongitude());
+
+        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
+        //it was pre written
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
+    }
+
+    protected void startLocationUpdates() {
+        // Create the location request
+        mLocationRequest = LocationRequest.create()
+                .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+               // .setInterval(UPDATE_INTERVAL)
+               // .setFastestInterval(FASTEST_INTERVAL);
+        // Request location updates
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
         }
-
-        //Place current location marker
-        LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-        MarkerOptions markerOptions = new MarkerOptions();
-        markerOptions.position(latLng);
-        markerOptions.title(getAddressFromLatLng(latLng));
-        markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA));
-        mCurrLocationMarker = mMap.addMarker(markerOptions);
-
-        //move map camera
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
-        mMap.animateCamera(CameraUpdateFactory.zoomTo(11));
-
-        //stop location updates
-//        if (mGoogleApiClient != null) {
-//            LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
-//        }
+        LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, (com.google.android.gms.location.LocationListener) this);
+        Log.d("reque", "--->>>>");
     }
 
-    @Override
-    public void onStatusChanged(String provider, int status, Bundle extras) {
-
-    }
-
-    @Override
-    public void onProviderEnabled(String provider) {
-
-    }
-
-    @Override
-    public void onProviderDisabled(String provider) {
-
-    }
 
     public void dialogDismiss() {
         dialog.dismiss();
@@ -521,10 +786,47 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
 
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
 
+        startLocationUpdates();
 
-    /*  Share Screenshot  */
+        mLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+
+        if (mLocation == null) {
+            startLocationUpdates();
+        }
+        if (mLocation != null) {
+
+            // mLatitudeTextView.setText(String.valueOf(mLocation.getLatitude()));
+            //mLongitudeTextView.setText(String.valueOf(mLocation.getLongitude()));
+        } else {
+            Toast.makeText(this, "Location not Detected", Toast.LENGTH_SHORT).show();
+        }
+
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+        mGoogleApiClient.connect();
+
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+
+    }
 
 
     private class CustomInfoWindowAdapter implements GoogleMap.InfoWindowAdapter {
@@ -551,7 +853,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         public View getInfoWindow(Marker marker) {
             marker = marker;
 
-            String url = null;
+
 
             if (marker.getId() != null && markers != null && markers.size() > 0) {
                 if (markers.get(marker.getId()) != null &&
@@ -560,12 +862,110 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
             }
             final CircularImageView image = ((CircularImageView) view.findViewById(R.id.profile_pic));
+            final TextView storeName = view.findViewById(R.id.storeName);
+            final TextView popularHash = view.findViewById(R.id.popularHash);
 
 
             image.setImageResource(R.drawable.demoman);
+            Toast.makeText(MapsActivity.this, url, Toast.LENGTH_SHORT).show();
+            String markerInfo = marker.getId().substring(1);
+
+            storeName.setText(hashStashLists.get(Integer.parseInt(url)).getHashStashlocation());
+            popularHash.setText(hashStashLists.get(Integer.parseInt(url)).getHashStashComments());
+
+            locationId=hashStashLists.get(Integer.parseInt(url)).getHashStashlocationId();
+         //   appPreferences.putString(AppPreferences.LOCATION_ID, hashStashLists.get(Integer.parseInt(url)).getHashStashlocationId());
+         //   appPreferences.putString(AppPreferences.HASHORSTASH, hashOrStash);
 
 
             return view;
         }
     }
+
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if (mGoogleApiClient != null) {
+            mGoogleApiClient.connect();
+        }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (mGoogleApiClient.isConnected()) {
+            mGoogleApiClient.disconnect();
+        }
+    }
+
+    private boolean checkLocation() {
+        if (!isLocationEnabled())
+            showAlert();
+        return isLocationEnabled();
+    }
+
+    private void showAlert() {
+        final AlertDialog.Builder dialog = new AlertDialog.Builder(this);
+        dialog.setTitle("Enable Location")
+                .setMessage("Your Locations Settings is set to 'Off'.\nPlease Enable Location to " +
+                        "use this app")
+                .setPositiveButton("Location Settings", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface paramDialogInterface, int paramInt) {
+
+                        Intent myIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                        startActivity(myIntent);
+                    }
+                })
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface paramDialogInterface, int paramInt) {
+
+                    }
+                });
+        dialog.show();
+    }
+
+    private boolean isLocationEnabled() {
+        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) ||
+                locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+    }
+
+    private boolean requestSinglePermission() {
+
+        Dexter.withActivity(this)
+                .withPermission(Manifest.permission.ACCESS_FINE_LOCATION)
+                .withListener(new PermissionListener() {
+                    @Override
+                    public void onPermissionGranted(PermissionGrantedResponse response) {
+                        //Single Permission is granted
+                      //  Toast.makeText(MapsActivity.this, "Single permission is granted!", Toast.LENGTH_SHORT).show();
+                        isPermission = true;
+                    }
+
+                    @Override
+                    public void onPermissionDenied(PermissionDeniedResponse response) {
+                        // check for permanent denial of permission
+                        if (response.isPermanentlyDenied()) {
+                            isPermission = false;
+                        }
+                    }
+
+                    @Override
+                    public void onPermissionRationaleShouldBeShown(PermissionRequest permission, PermissionToken token) {
+                        token.continuePermissionRequest();
+                    }
+                }).check();
+
+        return isPermission;
+
+    }
+
+    private String convertToUTF8(String str) {
+        byte[] byteArray = str.getBytes(UTF_8);
+        return new String(byteArray, UTF_8);
+    }
+
 }

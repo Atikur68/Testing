@@ -101,8 +101,18 @@ public class MainActivity extends AppCompatActivity
         }
         if (navOption.contains("hash list")) {
 
+            Bundle bundles = new Bundle();
+            String locationId = getIntent().getStringExtra("locationId");
+            String userId = getIntent().getStringExtra("userId");
+            String hashOrStash = getIntent().getStringExtra("hashOrStash");
+            bundle.putString("locationId", locationId );
+            bundle.putString("userId", userId );
+            bundle.putString("hashOrStash", hashOrStash );
+            HashFragment fragInfo = new HashFragment();
+            fragInfo.setArguments(bundle);
+
             FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-            ft.replace(R.id.mainFrame, new HashFragment());
+            ft.replace(R.id.mainFrame, fragInfo);
             ft.commit();
 
 
@@ -119,7 +129,10 @@ public class MainActivity extends AppCompatActivity
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
-            super.onBackPressed();
+           // super.onBackPressed();
+            Intent intent=new Intent(MainActivity.this,MapsActivity.class);
+            intent.putExtra("switch","HASH");
+            startActivity(intent);
         }
     }
 
@@ -154,7 +167,9 @@ public class MainActivity extends AppCompatActivity
 
         if (id == R.id.nav_hashmap) {
             // fragment = new HashMap();
-            startActivity(new Intent(this, MapsActivity.class));
+            Intent intent=new Intent(MainActivity.this,MapsActivity.class);
+            intent.putExtra("switch","HASH");
+            startActivity(intent);
         } else if (id == R.id.nav_slideshow) {
             // fragment = new WelcomeFragment();
             startActivity(new Intent(this, SlideShowActivity.class));

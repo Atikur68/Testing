@@ -12,7 +12,16 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.flarze.hashstash.R;
+import com.flarze.hashstash.data.LocationList;
+import com.flarze.hashstash.data.LocationListAdapter;
 import com.flarze.hashstash.data.instagram_login.AppPreferences;
 import com.flarze.hashstash.data.instagram_login.AuthenticationDialog;
 import com.flarze.hashstash.data.instagram_login.AuthenticationListener;
@@ -24,19 +33,23 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class SigninActivity extends AppCompatActivity implements AuthenticationListener {
 
 
-    private Button btn_signin,btn_sign_instragram;
+    private Button btn_signin, btn_sign_instragram;
     private String token = null;
     private AppPreferences appPreferences = null;
     private AuthenticationDialog authenticationDialog = null;
     private View info = null;
+    private String nameStr, userNameStr, profile_pic, insta_Id, id;
 
 
     @Override
@@ -46,8 +59,8 @@ public class SigninActivity extends AppCompatActivity implements AuthenticationL
         getSupportActionBar().hide();
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
-      //  LinearLayout layout=(LinearLayout) findViewById(R.id.signingLayout);
-      //  layout.setBackgroundResource(R.drawable.signing_background);
+        //  LinearLayout layout=(LinearLayout) findViewById(R.id.signingLayout);
+        //  layout.setBackgroundResource(R.drawable.signing_background);
 
         appPreferences = new AppPreferences(this);
 
@@ -55,13 +68,18 @@ public class SigninActivity extends AppCompatActivity implements AuthenticationL
         token = appPreferences.getString(AppPreferences.TOKEN);
 
 
-        btn_signin=findViewById(R.id.btn_sign);
-        btn_sign_instragram=findViewById(R.id.btn_sign_instragram);
+        btn_signin = findViewById(R.id.btn_sign);
+        btn_sign_instragram = findViewById(R.id.btn_sign_instragram);
 
         btn_signin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(SigninActivity.this, VerifyPhoneActivity.class));
+                 startActivity(new Intent(SigninActivity.this, VerifyPhoneActivity.class));
+//                Intent intent=new Intent(SigninActivity.this,MapsActivity.class);
+//                intent.putExtra("switch","hash");
+//                startActivity(intent);
+                //locationListShownn();
+
             }
         });
 
@@ -83,19 +101,119 @@ public class SigninActivity extends AppCompatActivity implements AuthenticationL
     }
 
     public void onClick(View view) {
-        if(token!=null)
-        {
+        if (token != null) {
             getUserInfoByAccessToken(token);
-        }
-        else {
+        } else {
             authenticationDialog = new AuthenticationDialog(this, this);
             authenticationDialog.setCancelable(true);
             authenticationDialog.show();
         }
     }
 
+    public void getUsers(String insta_id) {
+        String urlSting = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/phone/";
+        String HttpUrl = urlSting.concat(insta_id);
+
+        RequestQueue requestQueue;
+        requestQueue = Volley.newRequestQueue(SigninActivity.this);
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, HttpUrl,
+                new com.android.volley.Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        try {
+                            final JSONObject jsonObject = new JSONObject(response);
+                            // Process your json here as required
+
+                            appPreferences.putString(AppPreferences.TABLE_ID, jsonObject.getString("id"));
+                            appPreferences.putString(AppPreferences.USER_NAME, jsonObject.getString("username"));
+                            appPreferences.putString(AppPreferences.NAME, jsonObject.getString("name"));
+                            appPreferences.putString(AppPreferences.USER_PASSWORD, jsonObject.getString("password"));
+                            appPreferences.putString(AppPreferences.USER_PHONE, jsonObject.getString("phone"));
+                            appPreferences.putString(AppPreferences.USER_EMAIL, jsonObject.getString("email"));
+                            appPreferences.putString(AppPreferences.USER_COUNTRY, jsonObject.getString("country"));
+                            appPreferences.putString(AppPreferences.PROFILE_PIC, jsonObject.getString("image"));
+
+                            startActivity(new Intent(SigninActivity.this, MapsActivity.class));
+
+                        } catch (JSONException e) {
+                            login();
+                        }
+                    }
+                },
+                new com.android.volley.Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError volleyError) {
+                        login();
+                    }
+                });
+
+        // Creating RequestQueue.
+        requestQueue = Volley.newRequestQueue(SigninActivity.this);
+        // Adding the StringRequest object into requestQueue.
+        requestQueue.add(stringRequest);
+
+        // makeJsonObjectRequest();
+
+        // GetUserForNavigation("3103467261");
+    }
+
+
     public void login() {
-        startActivity(new Intent(SigninActivity.this,MapsActivity.class));
+
+        Map<String, String> params = new HashMap<String, String>();
+        // Adding All values to Params.
+
+        params.put("name", nameStr);
+        params.put("username", userNameStr);
+        params.put("password", "");
+        params.put("phone", insta_Id);
+        params.put("email", "");
+        params.put("country", "USA");
+        params.put("image", profile_pic);
+
+        String HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users";
+
+
+        JsonObjectRequest jsonObjReq = new JsonObjectRequest(Request.Method.POST,
+                HttpUrl, new JSONObject(params), new Response.Listener<JSONObject>() {
+
+            @Override
+            public void onResponse(JSONObject response) {
+                Log.d("response:", response.toString());
+                try {
+                    // id = response.getString("phone");
+                    appPreferences.putString(AppPreferences.TABLE_ID, response.getString("id"));
+                    appPreferences.putString(AppPreferences.USER_NAME, response.getString("username"));
+                    appPreferences.putString(AppPreferences.NAME, response.getString("name"));
+                    appPreferences.putString(AppPreferences.USER_PASSWORD, response.getString("password"));
+                    appPreferences.putString(AppPreferences.USER_PHONE, response.getString("phone"));
+                    appPreferences.putString(AppPreferences.USER_EMAIL, response.getString("email"));
+                    appPreferences.putString(AppPreferences.USER_COUNTRY, response.getString("country"));
+                    appPreferences.putString(AppPreferences.PROFILE_PIC, response.getString("image"));
+                    startActivity(new Intent(SigninActivity.this, MapsActivity.class));
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                Toast.makeText(SigninActivity.this, "" + response, Toast.LENGTH_SHORT).show();
+
+
+            }
+        }, new Response.ErrorListener() {
+
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Toast.makeText(getApplicationContext(), error.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+
+
+        RequestQueue requestQueue;
+        requestQueue = Volley.newRequestQueue(SigninActivity.this);
+        //  Creating RequestQueue.
+        requestQueue = Volley.newRequestQueue(SigninActivity.this);
+        // Adding the StringRequest object into requestQueue.
+        requestQueue.add(jsonObjReq);
+        startActivity(new Intent(SigninActivity.this, MapsActivity.class));
     }
 
     @Override
@@ -138,21 +256,95 @@ public class SigninActivity extends AppCompatActivity implements AuthenticationL
                     // JSONObject jsonData = jsonObject.getJSONObject("sig");
                     if (jsonData.has("id")) {
                         //сохранение данных пользователя
-                        appPreferences.putString(AppPreferences.USER_ID, jsonData.getString("id"));
-                        appPreferences.putString(AppPreferences.USER_NAME, jsonData.getString("username"));
-                        appPreferences.putString(AppPreferences.PROFILE_PIC, jsonData.getString("profile_picture"));
+
+                        insta_Id = jsonData.getString("id");
+                        nameStr = jsonData.getString("full_name");
+                        userNameStr = jsonData.getString("username");
+                        profile_pic = jsonData.getString("profile_picture");
+
+//                        appPreferences.putString(AppPreferences.USER_ID, jsonData.getString("id"));
+//                        appPreferences.putString(AppPreferences.USER_NAME, jsonData.getString("username"));
+//                        appPreferences.putString(AppPreferences.PROFILE_PIC, jsonData.getString("profile_picture"));
 
                         //TODO: сохранить еще данные
-                        login();
+                        getUsers(insta_Id);
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
 
             } else {
-                Toast.makeText(getApplicationContext(),"Error",Toast.LENGTH_LONG);
+                Toast.makeText(getApplicationContext(), "Error", Toast.LENGTH_LONG);
 
             }
         }
+    }
+
+    private void locationListShownn() {
+
+        String HttpUrl = "https://api.tomtom.com/search/2/search/food.json?key=7eIbPrsJGRDCSQzW4tSaa7N3nDtH03lj&lat=24.848078&lon=89.372963&radius=100000";
+
+        RequestQueue requestQueue;
+        requestQueue = Volley.newRequestQueue(SigninActivity.this);
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, HttpUrl,
+                new com.android.volley.Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        if (response.contains("results")) {
+
+                            try {
+                                JSONObject obj = new JSONObject(response);
+
+                                JSONArray heroArray = obj.optJSONArray("results");
+
+                                for (int i = 0; i < heroArray.length(); i++) {
+
+                                    JSONObject heroObject = heroArray.getJSONObject(i);
+                                    String heroArrays = heroObject.getString("poi");
+
+                                    JSONObject heroObjectPosition = heroArray.getJSONObject(i);
+                                    String heroArraysPosition = heroObjectPosition.getString("position");
+
+
+                                    JSONObject object = new JSONObject(heroArrays);
+                                    String heroArrayss = object.getString("name");
+
+                                    JSONObject objectPosition = new JSONObject(heroArraysPosition);
+                                    String heroArrayssPositionLat = objectPosition.getString("lat");
+                                    String heroArrayssPositionLon = objectPosition.getString("lon");
+
+                                    Toast.makeText(SigninActivity.this, heroArrayss+"..."+heroArrayssPositionLat +","+ heroArrayssPositionLon, Toast.LENGTH_SHORT).show();
+
+
+                                }
+
+
+                            } catch (JSONException e) {
+                                // pDialog.hide();
+                                e.printStackTrace();
+                            }
+
+                        } else {
+                            Toast.makeText(SigninActivity.this, "not found", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                },
+                new com.android.volley.Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError volleyError) {
+                        Toast.makeText(SigninActivity.this, "" + volleyError, Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+        // Creating RequestQueue.
+        requestQueue = Volley.newRequestQueue(SigninActivity.this);
+        // Adding the StringRequest object into requestQueue.
+        requestQueue.add(stringRequest);
+
+        // makeJsonObjectRequest();
+
+        // GetUserForNavigation("3103467261");
+
+
     }
 }

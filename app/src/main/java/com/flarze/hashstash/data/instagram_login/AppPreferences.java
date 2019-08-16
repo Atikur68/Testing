@@ -9,6 +9,15 @@ public class AppPreferences {
     public static final String TOKEN = "token";
     public static final String PROFILE_PIC = "profile_pic";
     public static final String USER_NAME = "username";
+    public static final String NAME = "name";
+    public static final String USER_PASSWORD = "password";
+    public static final String USER_PHONE = "phone";
+    public static final String USER_EMAIL = "email";
+    public static final String USER_COUNTRY = "country";
+    public static final String TABLE_ID = "id";
+    public static final String HASHORSTASH = "hashOrStash";
+    public static final String LOCATION_ID = "locationId";
+
 
     private SharedPreferences preferences;
 

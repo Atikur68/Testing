@@ -5,12 +5,14 @@ import android.os.Build;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
@@ -21,6 +23,7 @@ import com.android.volley.toolbox.Volley;
 import com.flarze.hashstash.R;
 import com.flarze.hashstash.data.Api;
 import com.flarze.hashstash.data.User;
+import com.flarze.hashstash.data.instagram_login.AppPreferences;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -42,20 +45,25 @@ public class SignUpActivity extends AppCompatActivity {
     private Button buttonNext;
     private String editTextNameStr = "", editTextUserNameStr = "", editTextPasswordStr = "", editTextPhoneStr = "", editTextEmailStr = "", editTextCountryStr = "";
 
-    private String jsonResponse;
+    private String jsonResponse,mobile;
 
     private User mUser, loadedUser;
+    private AppPreferences appPreferences = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sign_up);
 
+        appPreferences = new AppPreferences(this);
+
+        mobile=getIntent().getStringExtra("mobile");
+
         toolBarSignup = findViewById(R.id.toolBarSignup);
         editTextName = findViewById(R.id.editTextName);
         editTextUserName = findViewById(R.id.editTextUserName);
         editTextPassword = findViewById(R.id.editTextPassword);
-        editTextPhone = findViewById(R.id.editTextPhone);
+       // editTextPhone = findViewById(R.id.editTextPhone);
         editTextEmail = findViewById(R.id.editTextEmail);
         editTextCountry = findViewById(R.id.editTextCountry);
         buttonNext = findViewById(R.id.buttonNext);
@@ -78,7 +86,7 @@ public class SignUpActivity extends AppCompatActivity {
                 editTextNameStr = editTextName.getText().toString().trim();
                 editTextUserNameStr = editTextUserName.getText().toString().trim();
                 editTextPasswordStr = editTextPassword.getText().toString().trim();
-                editTextPhoneStr = editTextPhone.getText().toString().trim();
+               // editTextPhoneStr = editTextPhone.getText().toString().trim();
                 editTextEmailStr = editTextEmail.getText().toString().trim();
                 editTextCountryStr = editTextCountry.getText().toString().trim();
 
@@ -105,11 +113,11 @@ public class SignUpActivity extends AppCompatActivity {
                     status = false;
                 }
 
-                if (editTextPhoneStr.isEmpty() || editTextPhoneStr.length() < 10) {
-                    editTextPhone.setError("Please enter valid number");
-                    editTextPhone.requestFocus();
-                    status = false;
-                }
+//                if (editTextPhoneStr.isEmpty() || editTextPhoneStr.length() < 10) {
+//                    editTextPhone.setError("Please enter valid number");
+//                    editTextPhone.requestFocus();
+//                    status = false;
+//                }
 
                 if (!isValidEmailId(editTextEmailStr)) {
                     editTextEmail.setError("Please enter valid email");
@@ -119,41 +127,7 @@ public class SignUpActivity extends AppCompatActivity {
 
                 if (status == true) {
 
-                    String urlSting="http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/phone/";
-                    String HttpUrl =urlSting.concat(editTextPhoneStr);
-
-                    RequestQueue requestQueue;
-                    requestQueue = Volley.newRequestQueue(SignUpActivity.this);
-                    StringRequest stringRequest = new StringRequest(Request.Method.GET, HttpUrl,
-                            new com.android.volley.Response.Listener<String>() {
-                                @Override
-                                public void onResponse(String response) {
-                                    try {
-                                        final JSONObject jsonObject = new JSONObject(response);
-                                        // Process your json here as required
-                                        String name = jsonObject.getString("name");
-                                        Toast.makeText(SignUpActivity.this, name, Toast.LENGTH_SHORT).show();
-
-                                    } catch (JSONException e) {
-                                        // Handle json exception as needed
-                                    }
-                                }
-                            },
-                            new com.android.volley.Response.ErrorListener() {
-                                @Override
-                                public void onErrorResponse(VolleyError volleyError) {
-                                    Toast.makeText(SignUpActivity.this, ""+volleyError, Toast.LENGTH_SHORT).show();
-                                }
-                            });
-
-                    // Creating RequestQueue.
-                    requestQueue = Volley.newRequestQueue(SignUpActivity.this);
-                    // Adding the StringRequest object into requestQueue.
-                    requestQueue.add(stringRequest);
-
-                   // makeJsonObjectRequest();
-
-                    // GetUserForNavigation("3103467261");
+                    makeJsonObjectRequest();
 
                 } else {
                     Toast.makeText(SignUpActivity.this, "Invalid", Toast.LENGTH_SHORT).show();
@@ -190,40 +164,46 @@ public class SignUpActivity extends AppCompatActivity {
 
     private void makeJsonObjectRequest() {
 
-        String urlSting="http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/phone/";
-        String HttpUrl =urlSting.concat(editTextPhoneStr);
-        Toast.makeText(SignUpActivity.this, HttpUrl, Toast.LENGTH_SHORT).show();
-        JsonObjectRequest jsonObjReq = new JsonObjectRequest(Request.Method.GET,
-                HttpUrl, (String) null, new Response.Listener<JSONObject>() {
+        Map<String, String> params = new HashMap<String, String>();
+        // Adding All values to Params.
+
+        params.put("name", editTextNameStr);
+        params.put("username", editTextUserNameStr);
+        params.put("password", editTextPasswordStr);
+        params.put("phone", mobile);
+        params.put("email", editTextEmailStr);
+        params.put("country", editTextCountryStr);
+        params.put("image", "XX");
+
+
+
+        String HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users";
+
+
+        JsonObjectRequest jsonObjReq = new JsonObjectRequest(Request.Method.POST,
+                HttpUrl, new JSONObject(params), new Response.Listener<JSONObject>() {
 
             @Override
             public void onResponse(JSONObject response) {
 
-
+                Log.d("response:", response.toString());
                 try {
-                    // Parsing json object response
-                    // response will be a json object
-                    String name = response.getString("name");
-                    String email = response.getString("email");
-                    JSONObject phone = response.getJSONObject("phone");
-                    String home = phone.getString("username");
-                    String mobile = phone.getString("mobile");
 
-                    jsonResponse = "";
-                    jsonResponse += "Name: " + name + "\n\n";
-                    jsonResponse += "Email: " + email + "\n\n";
-                    jsonResponse += "username: " + home + "\n\n";
-                    jsonResponse += "Mobile: " + mobile + "\n\n";
-
-                    Toast.makeText(SignUpActivity.this, "" + response, Toast.LENGTH_SHORT).show();
-
-
+                    appPreferences.clear();
+                    Toast.makeText(SignUpActivity.this, ""+response, Toast.LENGTH_SHORT).show();
+                    appPreferences.putString(AppPreferences.TABLE_ID, response.getString("id"));
+                    appPreferences.putString(AppPreferences.USER_NAME, response.getString("username"));
+                    appPreferences.putString(AppPreferences.NAME, response.getString("name"));
+                    appPreferences.putString(AppPreferences.USER_PASSWORD, response.getString("password"));
+                    appPreferences.putString(AppPreferences.USER_PHONE, response.getString("phone"));
+                    appPreferences.putString(AppPreferences.USER_EMAIL, response.getString("email"));
+                    appPreferences.putString(AppPreferences.USER_COUNTRY, response.getString("country"));
+                    appPreferences.putString(AppPreferences.PROFILE_PIC, response.getString("image"));
+                    startActivity(new Intent(SignUpActivity.this,MapsActivity.class));
                 } catch (JSONException e) {
                     e.printStackTrace();
-                    Toast.makeText(getApplicationContext(),
-                            "Error: " + e.getMessage(),
-                            Toast.LENGTH_LONG).show();
                 }
+
 
             }
         }, new Response.ErrorListener() {
@@ -233,26 +213,9 @@ public class SignUpActivity extends AppCompatActivity {
                 Toast.makeText(getApplicationContext(), error.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
-//        {
-//            @Override
-//            protected Map<String, String> getParams() {
-//
-//                // Creating Map String Params.
-//                Map<String, String> params = new HashMap<String, String>();
-//                // Adding All values to Params.
-//
-//                params.put("phone", editTextPhoneStr);
-//              //  params.put("phone",3103467261);
-//
-//                return params;
-//            }
-//        };
 
-        // Adding request to request queue
-        //  AppController.getInstance().addToRequestQueue(jsonObjReq);
 
         RequestQueue requestQueue;
-        requestQueue = Volley.newRequestQueue(SignUpActivity.this);
         //  Creating RequestQueue.
         requestQueue = Volley.newRequestQueue(SignUpActivity.this);
         // Adding the StringRequest object into requestQueue.

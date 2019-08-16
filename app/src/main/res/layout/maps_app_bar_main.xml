@@ -43,14 +43,14 @@
                 android:visibility="gone">
 
                 <ImageView
-                    android:id="@+id/emojibtn"
+                    android:id="@+id/hashEmojibtn"
                     android:layout_width="@dimen/dp_30"
                     android:layout_height="@dimen/dp_30"
                     android:padding="5dp"
                     android:src="@drawable/happy_grey" />
 
                 <Button
-                    android:id="@+id/captureButton"
+                    android:id="@+id/hashCaptureButton"
                     android:layout_width="25dp"
                     android:layout_height="25dp"
                     android:layout_marginRight="5dp"
@@ -60,7 +60,7 @@
             </LinearLayout>
 
 
-            <EditText
+            <hani.momanii.supernova_emoji_library.Helper.EmojiconEditText
                 android:id="@+id/edt_hash_comment"
                 android:layout_width="150dp"
                 android:layout_height="match_parent"
@@ -205,7 +205,7 @@
         </LinearLayout>
 
 
-        <EditText
+        <hani.momanii.supernova_emoji_library.Helper.EmojiconEditText
             android:id="@+id/edt_shash_comment"
             android:layout_width="0dp"
             android:layout_height="match_parent"

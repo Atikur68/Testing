@@ -15,6 +15,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "735634024685-qvve4d1itk00hs8jf3saep8vfuqh4e97.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.flarze.hashstash",
+            "certificate_hash": "3d905a8b3cfb385e9e08918475740605aa780068"
+          }
+        },
+        {
           "client_id": "735634024685-62isk4admsk79uji7r6ha6jb8s0dpsul.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
