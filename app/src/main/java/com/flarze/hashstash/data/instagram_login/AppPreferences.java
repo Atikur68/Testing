@@ -17,6 +17,7 @@ public class AppPreferences {
     public static final String TABLE_ID = "id";
     public static final String HASHORSTASH = "hashOrStash";
     public static final String LOCATION_ID = "locationId";
+    public static final String WELCOME_STATUS = "welcome_status";
 
 
     private SharedPreferences preferences;
@@ -35,6 +36,18 @@ public class AppPreferences {
         editor.putString(key, value);
         editor.apply();
     }
+
+    public boolean getBoolean(String key) {
+        return preferences.getBoolean(key, false);
+    }
+
+    public void putBoolean(String key, boolean value)
+    {
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putBoolean(key, value);
+        editor.apply();
+    }
+
 
     public void clear()
     {

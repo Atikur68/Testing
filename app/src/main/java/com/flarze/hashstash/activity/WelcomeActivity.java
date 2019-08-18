@@ -17,25 +17,28 @@ import android.widget.TextView;
 
 import com.flarze.hashstash.R;
 import com.flarze.hashstash.data.ColorShades;
+import com.flarze.hashstash.data.instagram_login.AppPreferences;
 import com.viewpagerindicator.CirclePageIndicator;
 
 public class WelcomeActivity extends AppCompatActivity {
 
     private static final String SAVING_STATE_SLIDER_ANIMATION = "SliderAnimationSavingState";
     private boolean isSliderAnimation = false;
-    ViewPager viewPager = null;
-    String NOT_FIRST_TIME = "not_first_time";
-    String IS_LOGIN = "is_login";
-    Button btnGotit,btnSkip;
+    private ViewPager viewPager = null;
+    private String NOT_FIRST_TIME = "not_first_time";
+    private String IS_LOGIN = "is_login";
+    private Button btnGotit,btnSkip;
+    private AppPreferences appPreferences = null;
 
     private void launchHomeScreen() {
-      //  SharedPref.write(NOT_FIRST_TIME, true);
 
-//        if (SharedPref.readBoolean(IS_LOGIN)) {
-//            startActivity(new Intent(WelcomeActivity.this, MainActivity.class));
-//        } else {
+
+        if (appPreferences.getBoolean(AppPreferences.WELCOME_STATUS)==false) {
+
+            appPreferences.putBoolean(AppPreferences.WELCOME_STATUS,true);
+        } else {
             startActivity(new Intent(WelcomeActivity.this, SigninActivity.class));
-      //  }
+       }
         finish();
     }
 
@@ -47,11 +50,13 @@ public class WelcomeActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Checking for first time launch - before calling setContentView()
-//        if (SharedPref.readBoolean(NOT_FIRST_TIME)) {
-//            launchHomeScreen();
-//            finish();
-//        }
+        appPreferences = new AppPreferences(this);
+
+      //   Checking for first time launch - before calling setContentView()
+        if (!appPreferences.getBoolean(AppPreferences.WELCOME_STATUS)==false) {
+            launchHomeScreen();
+            finish();
+        }
 
         setContentView(R.layout.activity_welcome);
         getSupportActionBar().hide();
@@ -74,6 +79,7 @@ public class WelcomeActivity extends AppCompatActivity {
          btnSkip.setOnClickListener(new View.OnClickListener() {
              @Override
              public void onClick(View v) {
+                 appPreferences.putBoolean(AppPreferences.WELCOME_STATUS,true);
                  launchHomeScreen();
              }
          });
@@ -86,6 +92,7 @@ public class WelcomeActivity extends AppCompatActivity {
                     // move to next screen
                     viewPager.setCurrentItem(current);
                 } else {
+                    appPreferences.putBoolean(AppPreferences.WELCOME_STATUS,true);
                     launchHomeScreen();
                 }
             }

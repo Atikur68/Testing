@@ -51,10 +51,29 @@ public class SigninActivity extends AppCompatActivity implements AuthenticationL
     private View info = null;
     private String nameStr, userNameStr, profile_pic, insta_Id, id;
 
+    private void launchMapsScreen() {
+
+
+        if (appPreferences.getString(AppPreferences.USER_NAME) == null) {
+           // startActivity(new Intent(SigninActivity.this, VerifyPhoneActivity.class));
+            id=null;
+        } else {
+            startActivity(new Intent(SigninActivity.this, MapsActivity.class));
+        }
+        finish();
+    }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        appPreferences = new AppPreferences(this);
+        if (appPreferences.getString(AppPreferences.USER_NAME) != null) {
+            launchMapsScreen();
+            finish();
+        }
+
         setContentView(R.layout.activity_signin);
         getSupportActionBar().hide();
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
@@ -62,7 +81,6 @@ public class SigninActivity extends AppCompatActivity implements AuthenticationL
         //  LinearLayout layout=(LinearLayout) findViewById(R.id.signingLayout);
         //  layout.setBackgroundResource(R.drawable.signing_background);
 
-        appPreferences = new AppPreferences(this);
 
         //check already have access token
         token = appPreferences.getString(AppPreferences.TOKEN);
