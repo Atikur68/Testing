@@ -4,7 +4,7 @@ android {
     compileSdkVersion 28
     defaultConfig {
         applicationId "com.flarze.hashstash"
-        minSdkVersion 21
+        minSdkVersion 23
         targetSdkVersion 28
         versionCode 1
         versionName "1.0"
@@ -63,6 +63,13 @@ dependencies {
     implementation 'com.karumi:dexter:5.0.0'
 
     implementation 'com.github.hani-momanii:SuperNova-Emoji:1.1'
+
+    // for permission
+    implementation 'pub.devrel:easypermissions:1.2.0'
+
+    //Fiel Utilities
+    implementation 'org.apache.directory.studio:org.apache.commons.io:2.4'
+    implementation 'org.jsoup:jsoup:1.11.3'
 
 
     androidTestImplementation 'com.android.support.test:runner:1.0.2'

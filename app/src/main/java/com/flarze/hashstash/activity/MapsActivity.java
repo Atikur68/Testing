@@ -16,12 +16,14 @@ import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.provider.MediaStore;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -97,7 +99,13 @@ import java.util.List;
 
 import hani.momanii.supernova_emoji_library.Actions.EmojIconActions;
 import hani.momanii.supernova_emoji_library.Helper.EmojiconEditText;
+import pub.devrel.easypermissions.AppSettingsDialog;
+import pub.devrel.easypermissions.EasyPermissions;
 
+import static android.Manifest.permission.ACCESS_FINE_LOCATION;
+import static android.Manifest.permission.READ_CONTACTS;
+import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
+import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, NavigationView.OnNavigationItemSelectedListener, com.google.android.gms.location.LocationListener, GoogleApiClient.ConnectionCallbacks,
@@ -152,7 +160,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private long UPDATE_INTERVAL = 2 * 1000;  /* 10 secs */
     private long FASTEST_INTERVAL = 20000; /* 20 sec */
     private LatLng latLng;
-    private boolean isPermission;
+    private boolean isPermission,permissionStatus=true;
     private Location mLocation;
     private LocationManager mLocationManager;
 
@@ -162,6 +170,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     EmojIconActions emojIconHash, emojIconStash;
     final String TAG = MapsActivity.class.getSimpleName();
     private String switching="",locationId="",url = null;
+    public static final int RequestPermissionCode = 7;
+    private static final int REQUEST_CODE = 121;
+
 
 
 
@@ -170,20 +181,22 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         super.onCreate(savedInstanceState);
         setContentView(R.layout.maps_activity_main);
 
-        //mapInit();
+        appPreferences = new AppPreferences(this);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            getWindow().setStatusBarColor(Color.TRANSPARENT);
+        if (!appPreferences.getBoolean(AppPreferences.PERMISSIONS)) {
+            RequestMultiplePermission();
         }
 
-        appPreferences = new AppPreferences(this);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+
+            getWindow().setStatusBarColor(Color.TRANSPARENT);
+
+        }
+
         // userId=appPreferences.getString(AppPreferences.TABLE_ID);
         userId = "33";
-       // Toast.makeText(this, userId, Toast.LENGTH_SHORT).show();
 
         switching=getIntent().getStringExtra("switch");
-
-
         calander = Calendar.getInstance();
         simpledateformat = new SimpleDateFormat("dd-MM-yyyy");
         simpleTimeformate = new SimpleDateFormat("HH:mm:ss");
@@ -232,15 +245,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 //        });
 
         /////////////////////////////////////////////////////
-//        if(switching.contains("stash")){
-//            hashStashSwitch.setChecked(false);
-//            switchText.setText("Stash");
-//            switchHashStash = "stash";
-//
-//        }else {
-//            switchText.setText("Hash");
-//            switchHashStash = "HASH";
-//        }
+
 
 
         hashStashSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -354,9 +359,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
 
+
     private void locationPermission() {
 
-        if (requestSinglePermission()) {
+      //  if(requestSinglePermission()) {
             // Obtain the SupportMapFragment and get notified when the map is ready to be used.
             //it was pre written
             SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -372,7 +378,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             mLocationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
 
             checkLocation(); //check whether location service is enable or not in your  phone
-        }
+     //   }
+
     }
 
     private void drawerInit() {
@@ -387,7 +394,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         View hView = navigationView.getHeaderView(0);
         userProfilePic = hView.findViewById(R.id.userProfilePic);
         userName = hView.findViewById(R.id.userName);
-        Picasso.with(this).load(appPreferences.getString(AppPreferences.PROFILE_PIC)).into(userProfilePic);
+        if(appPreferences.getString(AppPreferences.PROFILE_PIC).contains("")){
+            userProfilePic.setImageResource(R.drawable.demoman);
+        }else {
+            Picasso.with(this).load(appPreferences.getString(AppPreferences.PROFILE_PIC)).into(userProfilePic);
+        }
         userName.setText(appPreferences.getString(AppPreferences.USER_NAME));
     }
 
@@ -466,16 +477,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                                     JSONObject objectCatagory = new JSONObject(heroArrays);
                                     String locationCatagory = objectCatagory.getString("categorySet");
 
-                                  //  Toast.makeText(MapsActivity.this, locationCatagory, Toast.LENGTH_SHORT).show();
-
-                                    //JSONArray locationCatagory = objectCatagory.optJSONArray("categorySet");
-
-
-                                   // JSONObject objectId = locationCatagory.getJSONObject(i);
-                                  //  String locationId = objectId.getString("id");
-                                  //  String locationId = objectId.getString("id");
-//                                    String locationId = "123456789";
-
                                     JSONObject objectPosition = new JSONObject(heroArraysPosition);
                                     String locationPositionLat = objectPosition.getString("lat");
                                     String locationPositionLon = objectPosition.getString("lon");
@@ -548,6 +549,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         } else if (id == R.id.nav_rate) {
             startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://yahoo.com")));
         } else if (id == R.id.nav_logout) {
+            appPreferences.clear();
             startActivity(new Intent(this, SigninActivity.class));
         }
 
@@ -694,7 +696,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                // .setInterval(UPDATE_INTERVAL)
                // .setFastestInterval(FASTEST_INTERVAL);
         // Request location updates
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
             // here to request the missing permissions, and then overriding
@@ -789,7 +791,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onConnected(@Nullable Bundle bundle) {
 
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
             // here to request the missing permissions, and then overriding
@@ -827,7 +829,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
 
     }
-
 
     private class CustomInfoWindowAdapter implements GoogleMap.InfoWindowAdapter {
 
@@ -874,8 +875,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             popularHash.setText(hashStashLists.get(Integer.parseInt(url)).getHashStashComments());
 
             locationId=hashStashLists.get(Integer.parseInt(url)).getHashStashlocationId();
-         //   appPreferences.putString(AppPreferences.LOCATION_ID, hashStashLists.get(Integer.parseInt(url)).getHashStashlocationId());
-         //   appPreferences.putString(AppPreferences.HASHORSTASH, hashOrStash);
+
 
 
             return view;
@@ -936,7 +936,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private boolean requestSinglePermission() {
 
         Dexter.withActivity(this)
-                .withPermission(Manifest.permission.ACCESS_FINE_LOCATION)
+                .withPermission(ACCESS_FINE_LOCATION)
                 .withListener(new PermissionListener() {
                     @Override
                     public void onPermissionGranted(PermissionGrantedResponse response) {
@@ -963,9 +963,73 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     }
 
+
+
+
+
     private String convertToUTF8(String str) {
         byte[] byteArray = str.getBytes(UTF_8);
         return new String(byteArray, UTF_8);
+    }
+
+    //Permission function starts from here
+    private void RequestMultiplePermission() {
+
+        // Creating String Array with Permissions.
+        ActivityCompat.requestPermissions(MapsActivity.this, new String[]
+                {
+                        ACCESS_FINE_LOCATION,
+                        WRITE_EXTERNAL_STORAGE,
+                        READ_CONTACTS
+                        // READ_EXTERNAL_STORAGE
+                }, RequestPermissionCode);
+
+    }
+
+    // Calling override method.
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        switch (requestCode) {
+
+            case RequestPermissionCode:
+
+                if (grantResults.length > 0) {
+
+                    boolean CameraPermission = grantResults[0] == PackageManager.PERMISSION_GRANTED;
+                    boolean RecordAudioPermission = grantResults[1] == PackageManager.PERMISSION_GRANTED;
+                    boolean SendSMSPermission = grantResults[2] == PackageManager.PERMISSION_GRANTED;
+                    // boolean GetAccountsPermission = grantResults[3] == PackageManager.PERMISSION_GRANTED;
+
+                    if (CameraPermission && RecordAudioPermission && SendSMSPermission) {
+
+                        Toast.makeText(MapsActivity.this, "Permission Granted", Toast.LENGTH_SHORT).show();
+                        appPreferences.putBoolean(AppPreferences.PERMISSIONS,true);
+                        startActivity(new Intent(this, this.getClass()));
+
+                    }
+                    else {
+                        Toast.makeText(MapsActivity.this,"Permission Denied",Toast.LENGTH_LONG).show();
+
+                    }
+                }
+
+                break;
+        }
+
+    }
+
+    // Checking permission is enabled or not using function starts from here.
+    public boolean CheckingPermissionIsEnabledOrNot() {
+
+        int FirstPermissionResult = ContextCompat.checkSelfPermission(getApplicationContext(), ACCESS_FINE_LOCATION);
+        int SecondPermissionResult = ContextCompat.checkSelfPermission(getApplicationContext(), WRITE_EXTERNAL_STORAGE);
+        int ThirdPermissionResult = ContextCompat.checkSelfPermission(getApplicationContext(), READ_CONTACTS);
+        // int ForthPermissionResult = ContextCompat.checkSelfPermission(getApplicationContext(), READ_EXTERNAL_STORAGE);
+
+        return FirstPermissionResult == PackageManager.PERMISSION_GRANTED &&
+                SecondPermissionResult == PackageManager.PERMISSION_GRANTED &&
+                ThirdPermissionResult == PackageManager.PERMISSION_GRANTED;
+
     }
 
 }

@@ -81,7 +81,11 @@ public class MainActivity extends AppCompatActivity
         View hView = navigationView.getHeaderView(0);
         userProfilePic = hView.findViewById(R.id.userProfilePic);
         userName=hView.findViewById(R.id.userName);
-        Picasso.with(this).load(appPreferences.getString(AppPreferences.PROFILE_PIC)).into(userProfilePic);
+        if(appPreferences.getString(AppPreferences.PROFILE_PIC).contains("")){
+            userProfilePic.setImageResource(R.drawable.demoman);
+        }else {
+            Picasso.with(this).load(appPreferences.getString(AppPreferences.PROFILE_PIC)).into(userProfilePic);
+        }
         userName.setText(appPreferences.getString(AppPreferences.USER_NAME));
 
         userProfilePic.setOnClickListener(new View.OnClickListener() {
@@ -180,6 +184,7 @@ public class MainActivity extends AppCompatActivity
         } else if (id == R.id.nav_rate) {
             startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://yahoo.com")));
         } else if (id == R.id.nav_logout) {
+            appPreferences.clear();
             startActivity(new Intent(this, SigninActivity.class));
         }
 

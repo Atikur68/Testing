@@ -1,8 +1,11 @@
 package com.flarze.hashstash.activity;
 
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
@@ -14,11 +17,17 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.flarze.hashstash.R;
 import com.flarze.hashstash.data.ColorShades;
 import com.flarze.hashstash.data.instagram_login.AppPreferences;
 import com.viewpagerindicator.CirclePageIndicator;
+
+import static android.Manifest.permission.ACCESS_FINE_LOCATION;
+import static android.Manifest.permission.READ_CONTACTS;
+import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
+import static com.flarze.hashstash.activity.MapsActivity.RequestPermissionCode;
 
 public class WelcomeActivity extends AppCompatActivity {
 
@@ -288,5 +297,7 @@ public class WelcomeActivity extends AppCompatActivity {
         super.onRestoreInstanceState(inState);
 
     }
+
+
 }
 

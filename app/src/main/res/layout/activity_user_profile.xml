@@ -13,13 +13,39 @@
         android:id="@+id/toolBarProfile"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_gravity="right"
         android:background="@color/appsColor"
+        android:gravity="right"
         android:minHeight="?attr/actionBarSize"
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:titleTextColor="@color/white" />
+        app:titleTextColor="@color/white">
+
+        <ImageView
+            android:id="@+id/editProfile"
+            android:layout_width="50dp"
+            android:layout_height="30dp"
+            android:layout_marginLeft="170dp"
+            android:foregroundGravity="right"
+            android:src="@drawable/edit_icon"
+            android:visibility="visible"
+
+            />
+
+        <ImageView
+            android:id="@+id/editProfileDone"
+            android:layout_width="50dp"
+            android:layout_height="30dp"
+            android:layout_marginLeft="170dp"
+            android:foregroundGravity="right"
+            android:src="@drawable/ok_icon"
+            android:visibility="gone"
+
+            />
+
+    </android.support.v7.widget.Toolbar>
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -196,9 +222,9 @@
             android:layout_alignParentBottom="true"
             android:layout_marginStart="0dp"
             android:layout_marginBottom="49dp"
+            android:gravity="center_horizontal"
             android:orientation="horizontal"
-            android:weightSum="2"
-            android:gravity="center_horizontal">
+            android:weightSum="2">
 
             <LinearLayout
                 android:layout_width="0dp"
@@ -210,8 +236,8 @@
                     android:id="@+id/friendImage"
                     android:layout_width="30dp"
                     android:layout_height="30dp"
-                    android:padding="1dp"
                     android:layout_marginRight="@dimen/dp_5"
+                    android:padding="1dp"
                     android:src="@drawable/socialnetwork" />
             </LinearLayout>
 
@@ -226,8 +252,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="15dp"
-                    android:text="Community"
                     android:layout_marginTop="@dimen/dp_5"
+                    android:text="Community"
                     android:textColor="#ffffff"
                     android:textSize="16dp" />
             </LinearLayout>
@@ -242,8 +268,8 @@
                     android:id="@+id/community_count"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="0"
                     android:layout_marginTop="@dimen/dp_5"
+                    android:text="0"
                     android:textColor="#ffffff"
                     android:textSize="16dp" />
             </LinearLayout>

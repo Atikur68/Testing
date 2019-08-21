@@ -1,7 +1,10 @@
 package com.flarze.hashstash.activity;
 
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.AsyncTask;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -40,6 +43,11 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+
+import static android.Manifest.permission.ACCESS_FINE_LOCATION;
+import static android.Manifest.permission.READ_CONTACTS;
+import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
+import static com.flarze.hashstash.activity.MapsActivity.RequestPermissionCode;
 
 public class SigninActivity extends AppCompatActivity implements AuthenticationListener {
 
@@ -93,10 +101,6 @@ public class SigninActivity extends AppCompatActivity implements AuthenticationL
             @Override
             public void onClick(View v) {
                  startActivity(new Intent(SigninActivity.this, VerifyPhoneActivity.class));
-//                Intent intent=new Intent(SigninActivity.this,MapsActivity.class);
-//                intent.putExtra("switch","hash");
-//                startActivity(intent);
-                //locationListShownn();
 
             }
         });
@@ -170,9 +174,6 @@ public class SigninActivity extends AppCompatActivity implements AuthenticationL
         // Adding the StringRequest object into requestQueue.
         requestQueue.add(stringRequest);
 
-        // makeJsonObjectRequest();
-
-        // GetUserForNavigation("3103467261");
     }
 
 
@@ -362,7 +363,6 @@ public class SigninActivity extends AppCompatActivity implements AuthenticationL
         // makeJsonObjectRequest();
 
         // GetUserForNavigation("3103467261");
-
-
     }
+
 }

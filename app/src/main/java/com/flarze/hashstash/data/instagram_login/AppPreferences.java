@@ -18,6 +18,7 @@ public class AppPreferences {
     public static final String HASHORSTASH = "hashOrStash";
     public static final String LOCATION_ID = "locationId";
     public static final String WELCOME_STATUS = "welcome_status";
+    public static final String PERMISSIONS = "permission_status";
 
 
     private SharedPreferences preferences;

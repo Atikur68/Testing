@@ -30,13 +30,11 @@ public class SlideShowActivity extends AppCompatActivity {
     Button btnGotit, btnSkip;
 
     private void launchHomeScreen() {
-        SharedPref.write(NOT_FIRST_TIME, true);
 
-        if (SharedPref.readBoolean(IS_LOGIN)) {
+
+
             startActivity(new Intent(SlideShowActivity.this, MapsActivity.class));
-        } else {
-            startActivity(new Intent(SlideShowActivity.this, SigninActivity.class));
-        }
+
         finish();
     }
 
@@ -47,13 +45,6 @@ public class SlideShowActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        // Checking for first time launch - before calling setContentView()
-        if (SharedPref.readBoolean(NOT_FIRST_TIME)) {
-            launchHomeScreen();
-            finish();
-        }
-
         setContentView(R.layout.activity_slide_show);
         getSupportActionBar().hide();
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
