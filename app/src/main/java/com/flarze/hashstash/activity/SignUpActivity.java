@@ -137,30 +137,7 @@ public class SignUpActivity extends AppCompatActivity {
         });
     }
 
-    private void GetUserForNavigation(String identity) {
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(Api.BASE_URL)
-                .addConverterFactory(GsonConverterFactory.create()) //Here we are using the GsonConverterFactory to directly convert json data to object
-                .build();
-        Api api = retrofit.create(Api.class);
-        Call<List<User>> call = api.ProfileApi(identity);//
-        call.enqueue(new Callback<List<User>>() {
-            @Override
-            public void onResponse(Call<List<User>> call, retrofit2.Response<List<User>> response) {
-                List<User> heroList = response.body();
-                for (int i = 0; i < heroList.size(); i++) {
-                    loadedUser = heroList.get(i);
-                    Toast.makeText(getApplicationContext(), "" + loadedUser, Toast.LENGTH_SHORT).show();
-                    //  SharedPref.write("user", loadedUser);
-                }
-            }
 
-            @Override
-            public void onFailure(Call<List<User>> call, Throwable t) {
-                Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
 
     private void makeJsonObjectRequest() {
 

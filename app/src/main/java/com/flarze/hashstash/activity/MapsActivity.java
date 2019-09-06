@@ -47,6 +47,7 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
@@ -117,7 +118,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public static final int MY_PERMISSIONS_REQUEST_LOCATION = 99;
     View view, vi;
     Double lat, lan;
-    String latitude, longitude;
+    String latitude, longitude,locationLatitude,locationLongitude;
     private RelativeLayout rootContent;
     private MapView mapView;
     private Location mLastLocation;
@@ -165,8 +166,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private LocationManager mLocationManager;
 
     Calendar calander;
-    public SimpleDateFormat simpledateformat, simpleTimeformate;
-    public String Date, Time, hashOrStash, userId, switchHashStash = "HASH";
+
+    public String Date, Time, hashOrStash, userId, switchHashStash = "hash";
     EmojIconActions emojIconHash, emojIconStash;
     final String TAG = MapsActivity.class.getSimpleName();
     private String switching="",locationId="",url = null;
@@ -193,15 +194,15 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         }
 
-        // userId=appPreferences.getString(AppPreferences.TABLE_ID);
-        userId = "33";
+        userId=appPreferences.getString(AppPreferences.TABLE_ID);
+
 
         switching=getIntent().getStringExtra("switch");
         calander = Calendar.getInstance();
-        simpledateformat = new SimpleDateFormat("dd-MM-yyyy");
-        simpleTimeformate = new SimpleDateFormat("HH:mm:ss");
-        Date = simpledateformat.format(calander.getTime());
-        Time = simpleTimeformate.format(calander.getTime());
+       // simpledateformat = new SimpleDateFormat("dd-MM-yyyy");
+       // simpleTimeformate = new SimpleDateFormat("HH:mm:ss");
+       // Date = simpleTimeformate.format(calander.getTime());
+        Time = String.valueOf(calander.getTimeInMillis()/1000);
 
         viewById();
 
@@ -253,7 +254,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
                     switchText.setText("Hash");
-                    switchHashStash = "HASH";
+                    switchHashStash = "hash";
                     startLocationUpdates();
 
 
@@ -445,8 +446,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private void locationListShown() {
 
-        //  String HttpUrl = "https://api.tomtom.com/search/2/search/store.json?key=7eIbPrsJGRDCSQzW4tSaa7N3nDtH03lj&lat=" + latitude + "&lon=" + longitude + "&radius=100000";
-        String HttpUrl = "https://api.tomtom.com/search/2/search/food.json?key=7eIbPrsJGRDCSQzW4tSaa7N3nDtH03lj&lat=23.777176&lon=90.399452&radius=100000";
+          String HttpUrl = "https://api.tomtom.com/search/2/search/store.json?key=7eIbPrsJGRDCSQzW4tSaa7N3nDtH03lj&lat=" + latitude + "&lon=" + longitude + "&radius=100000";
+       // String HttpUrl = "https://api.tomtom.com/search/2/search/food.json?key=7eIbPrsJGRDCSQzW4tSaa7N3nDtH03lj&lat=23.777176&lon=90.399452&radius=100000";
 
         RequestQueue requestQueue;
         requestQueue = Volley.newRequestQueue(MapsActivity.this);
@@ -482,7 +483,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                                     String locationPositionLon = objectPosition.getString("lon");
 
 
-                                    locationLists.add(new LocationList(R.mipmap.ic_launcher, locationName, locationPositionLat, locationPositionLon, "123456789"));
+                                    locationLists.add(new LocationList(R.mipmap.ic_launcher, locationName, locationPositionLat, locationPositionLon, "123459"));
 
                                 }
 
@@ -575,7 +576,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             public void onInfoWindowClick(Marker arg0) {
                     Intent intent = new Intent(MapsActivity.this, MainActivity.class);
                     intent.putExtra("main", "hash list");
-                    intent.putExtra("locationId", locationId);
+                    intent.putExtra("latitude", locationLatitude);
+                    intent.putExtra("longitude", locationLongitude);
                     intent.putExtra("userId", userId);
                     intent.putExtra("hashOrStash", switchHashStash);
                     startActivity(intent);
@@ -604,13 +606,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private void getHashorStashWithinKm() {
 
         String HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/" + userId + "/hash-or-stash/" + switchHashStash + "/coordinates/" + latitude + "/" + longitude+"/2.0";
-        //Toast.makeText(this, HttpUrl, Toast.LENGTH_SHORT).show();
+       // String HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/5/hash-or-stash/hash/coordinates/22.84564/89.540329/2.0";
 
         RequestQueue requestQueue;
         requestQueue = Volley.newRequestQueue(MapsActivity.this);
-        JsonArrayRequest jsArrayRequest = new JsonArrayRequest
-                (Request.Method.GET, HttpUrl, (JSONArray) null, new Response.Listener<JSONArray>() {
-
+        JsonArrayRequest jsArrayRequest = new JsonArrayRequest(Request.Method.GET, HttpUrl, (JSONArray) null, new Response.Listener<JSONArray>() {
 
                     @Override
                     public void onResponse(JSONArray response) {
@@ -625,6 +625,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                             for (int i = 0; i < response.length(); i++) {
 
                                 JSONObject hashStash = response.getJSONObject(i);
+
                                 String hashStashId = hashStash.getString("id");
                                 String hashStashComments = hashStash.getString("comments");
                                 String hashStashcmtTime = hashStash.getString("cmtTime");
@@ -645,8 +646,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                                         .snippet("Click on me:)"));
                                 markers.put(mark.getId(), ""+i);
                                 mMap.moveCamera(CameraUpdateFactory.newLatLng(locations.get(i)));
-
-                                Toast.makeText(MapsActivity.this, ""+mark.getId(), Toast.LENGTH_SHORT).show();
 
                                 hashStashLists.add(new HashStashList(hashStashId, hashStashComments, hashStashcmtTime, hashStashlocation, hashStashlocationId, hashStashlatitude, hashStashlongitude, hashStashduration));
 
@@ -868,13 +867,15 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
             image.setImageResource(R.drawable.demoman);
-            Toast.makeText(MapsActivity.this, url, Toast.LENGTH_SHORT).show();
             String markerInfo = marker.getId().substring(1);
 
             storeName.setText(hashStashLists.get(Integer.parseInt(url)).getHashStashlocation());
             popularHash.setText(hashStashLists.get(Integer.parseInt(url)).getHashStashComments());
 
+
             locationId=hashStashLists.get(Integer.parseInt(url)).getHashStashlocationId();
+            locationLatitude=hashStashLists.get(Integer.parseInt(url)).getHashStashlatitude();
+            locationLongitude=hashStashLists.get(Integer.parseInt(url)).getHashStashlongitude();
 
 
 

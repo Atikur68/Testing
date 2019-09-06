@@ -12,6 +12,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
+import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.VolleyError;
@@ -19,6 +20,7 @@ import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.flarze.hashstash.R;
 import com.flarze.hashstash.activity.MapsActivity;
+import com.mikhaellopez.circularimageview.CircularImageView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -31,11 +33,12 @@ public class Hash_adapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
     Context mcontext;
     List<Hash_List> hashList;
     View view;
-    String  vote;
+    String  vote,userId;
 
-    public Hash_adapter(Context context, List<Hash_List> hashLists) {
+    public Hash_adapter(Context context, List<Hash_List> hashLists,String userId) {
         this.mcontext = context;
         this.hashList = hashLists;
+        this.userId=userId;
 
     }
 
@@ -66,10 +69,10 @@ public class Hash_adapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
     }
 
     public class UserViewHolder extends RecyclerView.ViewHolder {
-        ImageView circleImageView;
+        CircularImageView circleImageView;
         TextView hashcomment, date, time;
         ToggleButton button_favorite;
-        String userId,hashId;
+        String userid,hashId;
 
 
         public UserViewHolder(View itemView) {
@@ -79,7 +82,7 @@ public class Hash_adapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
             hashcomment = itemView.findViewById(R.id.txt_hash_comment);
             date = itemView.findViewById(R.id.txt_date);
             time = itemView.findViewById(R.id.txt_time);
-            userId=((MapsActivity)mcontext).userId;
+            userid=userId;
             button_favorite = itemView.findViewById(R.id.button_favorite);
             button_favorite.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
@@ -91,7 +94,7 @@ public class Hash_adapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
                         String HttpUrl = "https://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/" + userId + "/hash-or-stash/" + hashId + "/hashes/votes";
                         RequestQueue requestQueue;
                         requestQueue = Volley.newRequestQueue(mcontext);
-                        StringRequest stringRequest = new StringRequest(Request.Method.PUT, HttpUrl,
+                        StringRequest stringRequest = new StringRequest(Request.Method.POST, HttpUrl,
                                 new com.android.volley.Response.Listener<String>() {
                                     @Override
                                     public void onResponse(String response) {
@@ -103,7 +106,12 @@ public class Hash_adapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
                                     public void onErrorResponse(VolleyError volleyError) {
                                         Toast.makeText(mcontext, "" + volleyError, Toast.LENGTH_SHORT).show();
                                     }
-                                });
+                                }){
+                            @Override
+                            public String getBodyContentType() {
+                                return "application/json";
+                            }
+                        };
 
                         // Creating RequestQueue.
                         requestQueue = Volley.newRequestQueue(mcontext);
@@ -127,7 +135,7 @@ public class Hash_adapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
                                         Toast.makeText(mcontext, "" + volleyError, Toast.LENGTH_SHORT).show();
                                     }
                                 });
-
+                        stringRequest.setRetryPolicy(new DefaultRetryPolicy(10 * 1000, 0, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
                         // Creating RequestQueue.
                         requestQueue = Volley.newRequestQueue(mcontext);
                         // Adding the StringRequest object into requestQueue.

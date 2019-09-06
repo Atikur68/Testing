@@ -13,10 +13,14 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.AuthFailureError;
+import com.android.volley.NetworkResponse;
+import com.android.volley.ParseError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
+import com.android.volley.VolleyLog;
+import com.android.volley.toolbox.HttpHeaderParser;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
@@ -28,6 +32,7 @@ import com.flarze.hashstash.data.instagram_login.AppPreferences;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -80,107 +85,120 @@ public class LocationListAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                 @Override
                 public void onClick(View v) {
                     LocationList locationList = locationLists.get(getLayoutPosition());
-//                    hashorstash=((MapsActivity)context).hashOrStash;
-//                    time=((MapsActivity)context).Time;
-//                    date=((MapsActivity)context).Date;
-//                    location=locationList.getLocatonName();
-//                    locationid=locationList.getLocationId();
-//                    longitude=locationList.getLocatonLon();
-//                    latitude=locationList.getLocatonLat();
-//                    userId=((MapsActivity)context).userId;
+                    hashorstash=((MapsActivity)context).hashOrStash;
 
-                    hashorstash = "stash";
-                    time = "1565805367";
-                    // date=((MapsActivity)context).Date;
-                    location = "Shiker";
-                    locationid = "4321";
-                    longitude = "22.8661445";
-                    latitude = "90.2663245";
-                    userId = "33";
 
                     if (hashorstash.contains("hash")) {
                         comment = ((MapsActivity) context).edt_hash_comment_str;
                     } else {
-                        // comment=((MapsActivity)context).edt_shash_comment_str;
-                        comment = "Stash Checking";
+                         comment=((MapsActivity)context).edt_shash_comment_str;
                     }
 
-                    Map<String, String> param = new HashMap<String, String>();
-                    // Adding All values to Params.
-
-                    param.put("comments", comment);
-                    param.put("cmtTime", time);
-                    param.put("location", location);
-                    param.put("locationId", locationid);
-                    param.put("latitude", longitude);
-                    param.put("longitude", longitude);
-                    param.put("duration", "120");
-                    param.put("hashOrStash", hashorstash);
-
-                    String HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/" + userId + "/hashorstash";
-                    //  139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/33/hash-or-stash
+                    try {
+//                        hashorstash = "0";
+//                       time = "1566611999";
+//                       location = "Shiker";
+//                        locationid = "4321";
+//                        latitude = "37.6955209";
+//                        longitude = "-122.1045643";
+//                        userId = "1";
 
 
-                  //  StringRequest jsonObjReq = new StringRequest(Request.Method.POST, HttpUrl, new com.android.volley.Response.Listener<String>
+                       // hashorstash=((MapsActivity)context).hashOrStash;
+                        time=((MapsActivity)context).Time;
+                        location=locationList.getLocatonName();
+                        locationid=locationList.getLocationId();
+                        longitude=locationList.getLocatonLon();
+                        latitude=locationList.getLocatonLat();
+                        userId=((MapsActivity)context).userId;
 
-                    JsonObjectRequest jsonObjReq = new JsonObjectRequest(Request.Method.POST, HttpUrl,new JSONObject(param), new Response.Listener<JSONObject>() {
+                        RequestQueue requestQueue = Volley.newRequestQueue(context);
+                        String URL = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/" + userId + "/hashorstash";
+                        JSONObject param = new JSONObject();
 
-                        @Override
-                        public void onResponse(JSONObject response) {
-                            //   Log.d("response:", response.toString());
-
-                            Toast.makeText(context, "Successfull" + response, Toast.LENGTH_SHORT).show();
-                        }
-
-
-                    }, new Response.ErrorListener() {
-
-                        @Override
-                        public void onErrorResponse(VolleyError error) {
-                            Toast.makeText(context, error.getMessage(), Toast.LENGTH_SHORT).show();
-                        }
-                    }) {
-//                        @Override
-//                        protected Map<String, String> getParams() throws AuthFailureError {
-//                            Map<String, String> param = new HashMap<String, String>();
-//                            // Adding All values to Params.
-//
-//                            param.put("comments", comment);
-//                            param.put("cmtTime", time);
-//                            param.put("location", location);
-//                            param.put("locationId", locationid);
-//                            param.put("latitude", longitude);
-//                            param.put("longitude", longitude);
-//                            param.put("duration", "120");
-//                            param.put("hashOrStash", hashorstash);
-//
-//                            return param;
-//                        }
+                        param.put("comments", comment);
+                        param.put("cmtTime", time);
+                        param.put("location", location);
+                        param.put("locationId", locationid);
+                        param.put("latitude", longitude);
+                        param.put("longitude", longitude);
+                        param.put("duration", "120");
+                        param.put("hashOrStash", "HASH");
 
 
-                        @Override
-                        public Map<String, String> getHeaders() throws AuthFailureError {
-                            HashMap<String, String> headers = new HashMap<String, String>();
-                            headers.put("Content-Type", "application/json; charset=utf-8");
-                            headers.put("Transfer-Encoding", "chunked");
-                            return headers;
-                        }
+                        final String requestBody = param.toString();
 
-                    };
+                        StringRequest stringRequest = new StringRequest(Request.Method.POST, URL, new Response.Listener<String>() {
+                            @Override
+                            public void onResponse(String response) {
+                                Toast.makeText(context,response, Toast.LENGTH_LONG).show();
+                                ((MapsActivity)context).dialogDismiss();
+                            }
+                        }, new Response.ErrorListener() {
+                            @Override
+                            public void onErrorResponse(VolleyError error) {
+                                Toast.makeText(context,error.getMessage(), Toast.LENGTH_LONG).show();
+                            }
+                        }) {
+                            @Override
+                            public String getBodyContentType() {
+                                return "application/json; charset=utf-8";
+                            }
 
+                            @Override
+                            public byte[] getBody() throws AuthFailureError {
+                                try {
+                                    return requestBody == null ? null : requestBody.getBytes("utf-8");
+                                } catch (UnsupportedEncodingException uee) {
+                                    VolleyLog.wtf("Unsupported Encoding while trying to get the bytes of %s using %s", requestBody, "utf-8");
+                                    return null;
+                                }
+                            }
 
-                    RequestQueue requestQueue;
-                    jsonObjReq.setShouldCache(false);
-                    //  Creating RequestQueue.
-                    requestQueue = Volley.newRequestQueue(context);
-                    // Adding the StringRequest object into requestQueue.
-                    requestQueue.add(jsonObjReq);
+                            @Override
+                            protected Response<String> parseNetworkResponse(NetworkResponse response) {
+                                try {
+                                    String jsonString = new String(response.data,
+                                            HttpHeaderParser.parseCharset(response.headers));
+                                    return Response.success(jsonString,
+                                            HttpHeaderParser.parseCacheHeaders(response));
+                                } catch (UnsupportedEncodingException e) {
+                                    return Response.error(new ParseError(e));
+                                }
+                            }
+                        };
 
+                        requestQueue.add(stringRequest);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
 
-                    ((MapsActivity) context).dialogDismiss();
                 }
             });
 
+
+
+        }
+
+        private Response.Listener<JSONObject> createRequestSuccessListener() {
+            Response.Listener listener = new Response.Listener() {
+                @Override
+                public void onResponse(Object response) {
+                    Toast.makeText(context, response.toString(), Toast.LENGTH_LONG).show();
+                }
+            };
+            return listener;
+        }
+        private Response.ErrorListener createRequestErrorListener() {
+            Response.ErrorListener err = new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    Toast.makeText(context, error.getMessage(), Toast.LENGTH_LONG).show();
+                }
+            };
+            return err;
         }
     }
+
+
 }

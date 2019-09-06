@@ -1,5 +1,6 @@
 package com.flarze.hashstash.activity;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
@@ -22,25 +23,35 @@ import android.widget.Toast;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.DefaultRetryPolicy;
+import com.android.volley.NetworkResponse;
+import com.android.volley.ParseError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.RetryPolicy;
 import com.android.volley.VolleyError;
+import com.android.volley.VolleyLog;
+import com.android.volley.toolbox.HttpHeaderParser;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.flarze.hashstash.R;
+import com.flarze.hashstash.data.LocationList;
+import com.flarze.hashstash.data.LocationListAdapter;
+import com.flarze.hashstash.data.VolleyMultipartRequest;
 import com.flarze.hashstash.data.instagram_login.AppPreferences;
 import com.mikhaellopez.circularimageview.CircularImageView;
 import com.squareup.picasso.Picasso;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
@@ -63,10 +74,11 @@ public class UserProfileActivity extends AppCompatActivity {
     private GestureDetectorCompat gestureDetectorCompat = null;
     private CircularImageView profile_image;
     private AppPreferences appPreferences = null;
-    private ImageView editProfile,editProfileDone;
+    private ImageView editProfile, editProfileDone;
     private Uri selectedImage;
     private String pathss = "";
     private String image;
+    private ProgressDialog progressDialog;
 
     public static String getRealPathFromUri(Context context, Uri contentUri) {
         Cursor cursor = null;
@@ -95,9 +107,9 @@ public class UserProfileActivity extends AppCompatActivity {
         editProfile = findViewById(R.id.editProfile);
         editProfileDone = findViewById(R.id.editProfileDone);
 
-        if(appPreferences.getString(AppPreferences.PROFILE_PIC).contains("")){
+        if (appPreferences.getString(AppPreferences.PROFILE_PIC).contains("")) {
             profile_image.setImageResource(R.drawable.demoman);
-        }else {
+        } else {
             Picasso.with(this).load(appPreferences.getString(AppPreferences.PROFILE_PIC)).into(profile_image);
         }
 
@@ -121,7 +133,7 @@ public class UserProfileActivity extends AppCompatActivity {
         editProfileDone.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (selectedImage!=null)
+                if (selectedImage != null)
                     uploadFile(image);
 
             }
@@ -153,6 +165,7 @@ public class UserProfileActivity extends AppCompatActivity {
 
                     Bitmap myBitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
                     image = getStringImage(myBitmap);
+                    Toast.makeText(UserProfileActivity.this, "" + image, Toast.LENGTH_SHORT).show();
                     profile_image.setImageBitmap(myBitmap);
                     editProfile.setVisibility(GONE);
                     editProfileDone.setVisibility(VISIBLE);
@@ -172,68 +185,116 @@ public class UserProfileActivity extends AppCompatActivity {
     }
 
 
+    private void uploadFile(final String image) {
 
-    private void uploadFile(String image) {
+    //    Toast.makeText(UserProfileActivity.this, image, Toast.LENGTH_SHORT).show();
 
-        Map<String, String> params = new HashMap<String, String>();
+        //       Map<String, String> params = new HashMap<String, String>();
         // Adding All values to Params.
-        params.put("id", appPreferences.getString(AppPreferences.TABLE_ID));
-        params.put("name", appPreferences.getString(AppPreferences.NAME));
-        params.put("username", appPreferences.getString(AppPreferences.USER_NAME));
-        params.put("password", appPreferences.getString(AppPreferences.USER_PASSWORD));
-        params.put("phone", appPreferences.getString(AppPreferences.USER_PHONE));
-        params.put("email", appPreferences.getString(AppPreferences.USER_EMAIL));
-        params.put("country", appPreferences.getString(AppPreferences.USER_COUNTRY));
-        params.put("image", image);
+//        params.put("id", appPreferences.getString(AppPreferences.TABLE_ID));
+//        params.put("name", appPreferences.getString(AppPreferences.NAME));
+//        params.put("username", appPreferences.getString(AppPreferences.USER_NAME));
+//        params.put("password", appPreferences.getString(AppPreferences.USER_PASSWORD));
+//        params.put("phone", appPreferences.getString(AppPreferences.USER_PHONE));
+//        params.put("email", appPreferences.getString(AppPreferences.USER_EMAIL));
+//        params.put("country", appPreferences.getString(AppPreferences.USER_COUNTRY));
+        //       params.put("image", image);
 
 
+//        String HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/"+appPreferences.getString(AppPreferences.TABLE_ID)+"/images";
+//
+//        Toast.makeText(this, ""+HttpUrl, Toast.LENGTH_SHORT).show();
+//        JsonObjectRequest jsonObjReq = new JsonObjectRequest(Request.Method.PUT,
+//                HttpUrl, new JSONObject(params), new com.android.volley.Response.Listener<JSONObject>() {
+//
+//            @Override
+//            public void onResponse(JSONObject response) {
+//
+//                Log.d("response:", response.toString());
+//                try {
+//
+//                    appPreferences.clear();
+//                    Toast.makeText(UserProfileActivity.this, ""+response, Toast.LENGTH_SHORT).show();
+//                    appPreferences.putString(AppPreferences.TABLE_ID, response.getString("id"));
+//                    appPreferences.putString(AppPreferences.USER_NAME, response.getString("username"));
+//                    appPreferences.putString(AppPreferences.NAME, response.getString("name"));
+//                    appPreferences.putString(AppPreferences.USER_PASSWORD, response.getString("password"));
+//                    appPreferences.putString(AppPreferences.USER_PHONE, response.getString("phone"));
+//                    appPreferences.putString(AppPreferences.USER_EMAIL, response.getString("email"));
+//                    appPreferences.putString(AppPreferences.USER_COUNTRY, response.getString("country"));
+//                    appPreferences.putString(AppPreferences.PROFILE_PIC, response.getString("image"));
+//
+//                    editProfile.setVisibility(VISIBLE);
+//                    editProfileDone.setVisibility(GONE);
+//
+//                } catch (JSONException e) {
+//                    e.printStackTrace();
+//                }
+//
+//
+//            }
+//        }, new Response.ErrorListener() {
+//
+//            @Override
+//            public void onErrorResponse(VolleyError error) {
+//                Toast.makeText(getApplicationContext(), error.getMessage(), Toast.LENGTH_SHORT).show();
+//            }
+//        });
+//
+//
+//        RequestQueue requestQueue;
+//        //  Creating RequestQueue.
+//        requestQueue = Volley.newRequestQueue(this);
+//        // Adding the StringRequest object into requestQueue.
+//        requestQueue.add(jsonObjReq);
 
-        String HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/"+appPreferences.getString(AppPreferences.TABLE_ID)+"/images";
+
+//        Map<String, String> params = new HashMap<String, String>();
+//        // Adding All values to Params.
+//        params.put("name", appPreferences.getString(AppPreferences.NAME));
+//        params.put("username", appPreferences.getString(AppPreferences.USER_NAME));
+//        params.put("password", appPreferences.getString(AppPreferences.USER_PASSWORD));
+//        params.put("phone", appPreferences.getString(AppPreferences.USER_PHONE));
+//        params.put("email", appPreferences.getString(AppPreferences.USER_EMAIL));
+//        params.put("country", appPreferences.getString(AppPreferences.USER_COUNTRY));
+//        params.put("image", image);
 
 
-        JsonObjectRequest jsonObjReq = new JsonObjectRequest(Request.Method.POST,
-                HttpUrl, new JSONObject(params), new com.android.volley.Response.Listener<JSONObject>() {
-
-            @Override
-            public void onResponse(JSONObject response) {
-
-                Log.d("response:", response.toString());
-                try {
-
-                    appPreferences.clear();
-                    Toast.makeText(UserProfileActivity.this, ""+response, Toast.LENGTH_SHORT).show();
-                    appPreferences.putString(AppPreferences.TABLE_ID, response.getString("id"));
-                    appPreferences.putString(AppPreferences.USER_NAME, response.getString("username"));
-                    appPreferences.putString(AppPreferences.NAME, response.getString("name"));
-                    appPreferences.putString(AppPreferences.USER_PASSWORD, response.getString("password"));
-                    appPreferences.putString(AppPreferences.USER_PHONE, response.getString("phone"));
-                    appPreferences.putString(AppPreferences.USER_EMAIL, response.getString("email"));
-                    appPreferences.putString(AppPreferences.USER_COUNTRY, response.getString("country"));
-                    appPreferences.putString(AppPreferences.PROFILE_PIC, response.getString("image"));
-
-                    editProfile.setVisibility(VISIBLE);
-                    editProfileDone.setVisibility(GONE);
-
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-
-
-            }
-        }, new Response.ErrorListener() {
-
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Toast.makeText(getApplicationContext(), error.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
-
-
+        String HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/" + appPreferences.getString(AppPreferences.TABLE_ID) + "/images";
         RequestQueue requestQueue;
-        //  Creating RequestQueue.
-        requestQueue = Volley.newRequestQueue(this);
+        progressDialog = new ProgressDialog(this);
+        progressDialog.setMessage("Uploading... ");
+        progressDialog.show();
+        requestQueue = Volley.newRequestQueue(UserProfileActivity.this);
+        VolleyMultipartRequest volleyMultipartRequest = new VolleyMultipartRequest(Request.Method.POST, HttpUrl,
+                new Response.Listener<NetworkResponse>() {
+                    @Override
+                    public void onResponse(NetworkResponse response) {
+
+                       // Toast.makeText(UserProfileActivity.this, ""+response, Toast.LENGTH_SHORT).show();
+                        progressDialog.dismiss();
+                    }
+                },
+                new com.android.volley.Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError volleyError) {
+                        Toast.makeText(UserProfileActivity.this, "" + volleyError, Toast.LENGTH_SHORT).show();
+                    }
+                }) {
+            @Override
+            protected Map<String, String> getParams()throws AuthFailureError {
+                Map<String, String> params = new HashMap<String, String>();
+                params.put("image", image);
+                return params;
+            }
+
+        };
+
+        // Creating RequestQueue.
+        requestQueue = Volley.newRequestQueue(UserProfileActivity.this);
         // Adding the StringRequest object into requestQueue.
-        requestQueue.add(jsonObjReq);
+        requestQueue.add(volleyMultipartRequest);
+
     }
 
 

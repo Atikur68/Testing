@@ -34,7 +34,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -46,10 +48,11 @@ public class HashFragment extends Fragment {
     private Hash_adapter adapter;
     private List<Hash_List> hashLists = new ArrayList<>();
     View view;
-    private String locationId = "1234", hashOrStash = "", userId = "";
+    private String locationLatitude = "",locationLongitude = "", hashOrStash = "", userId = "",storeNames="";
     private TextView storeName;
     private AppPreferences appPreferences = null;
     public MapsActivity mapsActivity;
+    public SimpleDateFormat simpledateformat, simpleTimeformate;
 
     public HashFragment() {
         // Required empty public constructor
@@ -81,7 +84,8 @@ public class HashFragment extends Fragment {
 
 //        appPreferences = new AppPreferences(getContext());
 //
-        locationId=bundle.getString("locationId");
+        locationLatitude=bundle.getString("latitude");
+        locationLongitude=bundle.getString("longitude");
 
         userId=bundle.getString("userId");
         hashOrStash=bundle.getString("hashOrStash");
@@ -93,6 +97,8 @@ public class HashFragment extends Fragment {
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
 
+
+
         getHashStashByLocation();
 
 
@@ -101,10 +107,10 @@ public class HashFragment extends Fragment {
 
     private void getHashStashByLocation() {
         String HttpUrl = "";
-        if (hashOrStash.contains("HASH")) {
-            HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/hash-or-stash/hashes/locations/" + locationId;
+        if (hashOrStash.contains("hash")) {
+            HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/hash-or-stash/hashes/locations/" + locationLatitude+"/"+locationLongitude;
         } else {
-            HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/" + userId + "/hash-or-stash/stashes/locations/" + locationId;
+            HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/" + userId + "/hash-or-stash/stashes/locations/" + locationLatitude+"/"+locationLongitude;
         }
 
 
@@ -134,13 +140,22 @@ public class HashFragment extends Fragment {
                                 String hashStashlongitude = hashStash.getString("longitude");
                                 String hashStashduration = hashStash.getString("duration");
 
-                                storeName.setText(hashStashlocation);
 
+                                storeNames=hashStashlocation;
 
-                                hashLists.add(new Hash_List(R.drawable.demoman,hashStashId, hashStashComments, "5, Feb 2019", "08:29:12"));
+                                long num = Long.valueOf(hashStashcmtTime);
+                                 simpledateformat = new SimpleDateFormat("dd-MM-yyyy");
+                                 simpleTimeformate = new SimpleDateFormat("HH:mm:ss");
+
+                                 String time=simpleTimeformate.format(new Date(num* 1000L));
+                                 String date=simpledateformat.format(new Date(num* 1000L));
+
+                                hashLists.add(new Hash_List(R.drawable.demoman,hashStashId, hashStashComments, date, time));
+
 
                             }
-                            adapter = new Hash_adapter(getContext(), hashLists);
+                            storeName.setText(storeNames);
+                            adapter = new Hash_adapter(getContext(), hashLists,userId);
                             recyclerView.setAdapter(adapter);
 
                         } catch (JSONException e) {

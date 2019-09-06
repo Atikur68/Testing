@@ -106,10 +106,12 @@ public class MainActivity extends AppCompatActivity
         if (navOption.contains("hash list")) {
 
             Bundle bundles = new Bundle();
-            String locationId = getIntent().getStringExtra("locationId");
+            String locationLatitude = getIntent().getStringExtra("latitude");
+            String locationLongitude = getIntent().getStringExtra("longitude");
             String userId = getIntent().getStringExtra("userId");
             String hashOrStash = getIntent().getStringExtra("hashOrStash");
-            bundle.putString("locationId", locationId );
+            bundle.putString("latitude", locationLatitude );
+            bundle.putString("longitude", locationLongitude );
             bundle.putString("userId", userId );
             bundle.putString("hashOrStash", hashOrStash );
             HashFragment fragInfo = new HashFragment();

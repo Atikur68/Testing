@@ -18,28 +18,6 @@ public interface Api {
    // String BASE_URL = "http://192.168.43.178/hashstash/hashOrStash.postman_collection.json";
     String BASE_URL = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/";
 
-    @GET("phone/{id}")
-    Call<List<User>> ProfileApi(@Path("id") String id);
-
-    @GET("user/{name}/{username}/{password}/{phone}/{email}/{country}/{image}")
-    Call<String> SaveUser(@Path("name") String name,
-                          @Path("username") String username,
-                          @Path("password") String password,
-                          @Path("phone") String phone,
-                          @Path("email") String email,
-                          @Path("country") String country,
-                          @Path("image") String image);
-
-
-    @GET("userupdate/{name}/{username}/{password}/{phone}/{email}/{country}/{image}")
-    Call<String> UpdateUser(@Path("name") String name,
-                            @Path("username") String username,
-                            @Path("password") String password,
-                            @Path("phone") String phone,
-                            @Path("email") String email,
-                            @Path("country") String country,
-                            @Path("image") String image);
-
     @Multipart
     @POST("image/")
     Call<String> UploadImage(@Part MultipartBody.Part image, @Part("file") RequestBody file,
