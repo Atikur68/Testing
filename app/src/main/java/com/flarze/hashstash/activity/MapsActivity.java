@@ -716,6 +716,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     public void dialogDismiss() {
         dialog.dismiss();
+        startActivity(new Intent(this, this.getClass()));
     }
 
     private String getAddressFromLatLng(LatLng latLng) {

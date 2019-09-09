@@ -36,10 +36,13 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.flarze.hashstash.R;
+import com.flarze.hashstash.data.Api;
 import com.flarze.hashstash.data.LocationList;
 import com.flarze.hashstash.data.LocationListAdapter;
 import com.flarze.hashstash.data.VolleyMultipartRequest;
 import com.flarze.hashstash.data.instagram_login.AppPreferences;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.mikhaellopez.circularimageview.CircularImageView;
 import com.squareup.picasso.Picasso;
 
@@ -79,6 +82,7 @@ public class UserProfileActivity extends AppCompatActivity {
     private String pathss = "";
     private String image;
     private ProgressDialog progressDialog;
+    public String HttpUrl;
 
     public static String getRealPathFromUri(Context context, Uri contentUri) {
         Cursor cursor = null;
@@ -101,6 +105,8 @@ public class UserProfileActivity extends AppCompatActivity {
         setContentView(R.layout.activity_user_profile);
 
         appPreferences = new AppPreferences(this);
+
+        HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/" + appPreferences.getString(AppPreferences.TABLE_ID) + "/images";
 
         toolBarProfile = findViewById(R.id.toolBarProfile);
         profile_image = findViewById(R.id.profile_image);
@@ -134,7 +140,8 @@ public class UserProfileActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (selectedImage != null)
-                    uploadFile(image);
+                   // uploadFile(image);
+                uploadFile(selectedImage);
 
             }
         });
@@ -164,8 +171,8 @@ public class UserProfileActivity extends AppCompatActivity {
                 if (imgFile.exists()) {
 
                     Bitmap myBitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
-                    image = getStringImage(myBitmap);
-                    Toast.makeText(UserProfileActivity.this, "" + image, Toast.LENGTH_SHORT).show();
+                  //  image = getStringImage(myBitmap);
+                  //  Toast.makeText(UserProfileActivity.this, "" + image, Toast.LENGTH_SHORT).show();
                     profile_image.setImageBitmap(myBitmap);
                     editProfile.setVisibility(GONE);
                     editProfileDone.setVisibility(VISIBLE);
@@ -260,7 +267,7 @@ public class UserProfileActivity extends AppCompatActivity {
 //        params.put("image", image);
 
 
-        String HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/" + appPreferences.getString(AppPreferences.TABLE_ID) + "/images";
+
         RequestQueue requestQueue;
         progressDialog = new ProgressDialog(this);
         progressDialog.setMessage("Uploading... ");
@@ -314,5 +321,72 @@ public class UserProfileActivity extends AppCompatActivity {
         String encodedImage = Base64.encodeToString(imageBytes, Base64.DEFAULT);
         return encodedImage;
 
+    }
+
+
+    private void uploadFile(Uri fileUri) {
+        final String[] successMessage = {""};
+        // create upload service client
+
+
+        // https://github.com/iPaulPro/aFileChooser/blob/master/aFileChooser/src/com/ipaulpro/afilechooser/utils/FileUtils.java
+        // use the FileUtils to get the actual file by uri
+        File file = FileUtils.getFile(getRealPathFromUri(this, fileUri));
+
+        RequestBody requestFile = RequestBody.create(
+                MediaType.parse("application/json; charset=utf-8"), file);
+
+        // RequestBody reqFile = RequestBody.create(MediaType.parse("image/*"), file);
+        MultipartBody.Part body = MultipartBody.Part.createFormData("file", file.getName(), requestFile);
+        //  RequestBody name = RequestBody.create(MediaType.parse("text/plain"), "file");
+        // RequestBody name = RequestBody.create(MediaType.parse("multipart/form-data"), file.getName());
+        RequestBody name = RequestBody.create(okhttp3.MultipartBody.FORM, file.getName());
+
+        //------------------------
+        long time = System.currentTimeMillis();
+        String extension = FilenameUtils.getExtension(file.getAbsolutePath());
+        String path=time + "." + extension;
+
+        Gson gson = new GsonBuilder()
+                .setLenient()
+                .create();
+
+//        mUser.setName(userNameEditText.getText().toString());
+//        mUser.setCountry(locationEditText.getText().toString());
+//        // mUser.setImage(file.getName());
+//        mUser.setImage(time + "." + extension);
+
+        //to delete image and store at same name
+//        if (mUser.getPhone() != "Default_mobile")
+//            mUser.setImage(mUser.getPhone() + "." + extension);
+//        else if (mUser.getEmail() != "default_email@gmail.com") {
+//            String email = mUser.getEmail();
+//            mUser.setImage(email.substring(0, email.lastIndexOf("@")) + "." + extension);
+//        }
+
+
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(Api.BASE_URL)
+                .addConverterFactory(GsonConverterFactory.create(gson)) //Here we are using the GsonConverterFactory to directly convert json data to object
+                .build();
+        Api api = retrofit.create(Api.class);
+
+        // finally, execute the request
+        Call<String> call = api.UploadImage(body);
+        call.enqueue(new Callback<String>() {
+            @Override
+            public void onResponse(Call<String> call,
+                                   retrofit2.Response<String> response) {
+
+               // successMessage[0] = response.body();
+                Toast.makeText(UserProfileActivity.this, ""+response, Toast.LENGTH_SHORT).show();
+              //  SharedPref.write("user", mUser);
+                Log.v("Upload", "success");
+            }
+            @Override
+            public void onFailure(Call<String> call, Throwable t) {
+                Log.e("Upload error:", t.getMessage());
+            }
+        });
     }
 }
