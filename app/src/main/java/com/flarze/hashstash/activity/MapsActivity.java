@@ -174,6 +174,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public static final int RequestPermissionCode = 7;
     private static final int REQUEST_CODE = 121;
 
+    public String getTime (){
+        calander = Calendar.getInstance();
+        return String.valueOf(calander.getTimeInMillis()/1000);
+    }
 
 
 
@@ -198,11 +202,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
         switching=getIntent().getStringExtra("switch");
-        calander = Calendar.getInstance();
+        //calander = Calendar.getInstance();
        // simpledateformat = new SimpleDateFormat("dd-MM-yyyy");
        // simpleTimeformate = new SimpleDateFormat("HH:mm:ss");
        // Date = simpleTimeformate.format(calander.getTime());
-        Time = String.valueOf(calander.getTimeInMillis()/1000);
+       // Time = String.valueOf(calander.getTimeInMillis()/1000);
 
         viewById();
 

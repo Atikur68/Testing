@@ -105,7 +105,7 @@ public class LocationListAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
 
                        // hashorstash=((MapsActivity)context).hashOrStash;
-                        time=((MapsActivity)context).Time;
+                        time=((MapsActivity)context).getTime();
                         location=locationList.getLocatonName();
                         locationid=locationList.getLocationId();
                         longitude=locationList.getLocatonLon();
@@ -120,10 +120,10 @@ public class LocationListAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                         param.put("cmtTime", time);
                         param.put("location", location);
                         param.put("locationId", locationid);
-                        param.put("latitude", longitude);
+                        param.put("latitude", latitude);
                         param.put("longitude", longitude);
                         param.put("duration", "120");
-                        param.put("hashOrStash", "HASH");
+                        param.put("hashOrStash", hashorstash);
 
 
                         final String requestBody = param.toString();
