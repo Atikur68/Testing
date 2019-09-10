@@ -200,13 +200,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         userId=appPreferences.getString(AppPreferences.TABLE_ID);
 
-
+        calander = Calendar.getInstance();
         switching=getIntent().getStringExtra("switch");
         //calander = Calendar.getInstance();
        // simpledateformat = new SimpleDateFormat("dd-MM-yyyy");
        // simpleTimeformate = new SimpleDateFormat("HH:mm:ss");
        // Date = simpleTimeformate.format(calander.getTime());
-       // Time = String.valueOf(calander.getTimeInMillis()/1000);
+        Time = String.valueOf(calander.getTimeInMillis()/1000);
 
         viewById();
 
@@ -609,9 +609,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private void getHashorStashWithinKm() {
 
-        String HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/" + userId + "/hash-or-stash/" + switchHashStash + "/coordinates/" + latitude + "/" + longitude+"/2.0";
+        String HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/" + userId + "/hash-or-stash/" + switchHashStash + "/coordinates/" + latitude + "/" + longitude+"/1200.0";
        // String HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/5/hash-or-stash/hash/coordinates/22.84564/89.540329/2.0";
-
+        Toast.makeText(this, ""+HttpUrl, Toast.LENGTH_SHORT).show();
         RequestQueue requestQueue;
         requestQueue = Volley.newRequestQueue(MapsActivity.this);
         JsonArrayRequest jsArrayRequest = new JsonArrayRequest(Request.Method.GET, HttpUrl, (JSONArray) null, new Response.Listener<JSONArray>() {
@@ -684,12 +684,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         latitude = String.valueOf(location.getLatitude());
         longitude = String.valueOf(location.getLongitude());
+        getHashorStashWithinKm();
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         //it was pre written
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
     }
 
     protected void startLocationUpdates() {
@@ -710,7 +712,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             return;
         }
         LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, (com.google.android.gms.location.LocationListener) this);
-        Log.d("reque", "--->>>>");
+        getHashorStashWithinKm();
+
+
     }
 
 

@@ -96,7 +96,7 @@ public class LocationListAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
                     try {
 //                        hashorstash = "0";
-//                       time = "1566611999";
+//                      time = "1568096021";
 //                       location = "Shiker";
 //                        locationid = "4321";
 //                        latitude = "37.6955209";
@@ -105,6 +105,7 @@ public class LocationListAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
 
                        // hashorstash=((MapsActivity)context).hashOrStash;
+                       // time=((MapsActivity)context).Time;
                         time=((MapsActivity)context).getTime();
                         location=locationList.getLocatonName();
                         locationid=locationList.getLocationId();
@@ -114,17 +115,17 @@ public class LocationListAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
                         RequestQueue requestQueue = Volley.newRequestQueue(context);
                         String URL = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/" + userId + "/hashorstash";
+                        //String URL = "http://192.168.0.10:8084/hashorstash/users/" + userId + "/hashorstash";
                         JSONObject param = new JSONObject();
 
                         param.put("comments", comment);
                         param.put("cmtTime", time);
                         param.put("location", location);
                         param.put("locationId", locationid);
-                        param.put("latitude", latitude);
+                        param.put("latitude", longitude);
                         param.put("longitude", longitude);
                         param.put("duration", "120");
-                        param.put("hashOrStash", hashorstash);
-
+                        param.put("hashOrStash", "HASH");
 
                         final String requestBody = param.toString();
 
