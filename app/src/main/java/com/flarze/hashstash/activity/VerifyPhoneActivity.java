@@ -16,9 +16,12 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
+import com.android.volley.Response;
 import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.chaos.view.PinView;
@@ -35,9 +38,12 @@ import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.PhoneAuthCredential;
 import com.google.firebase.auth.PhoneAuthProvider;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static com.flarze.hashstash.data.Constants.IS_LOGIN;
@@ -54,6 +60,7 @@ public class VerifyPhoneActivity extends AppCompatActivity {
     private Toolbar toolBarPhoneVerify;
     private GestureDetectorCompat gestureDetectorCompat = null;
     private AppPreferences appPreferences = null;
+    private int stashCount, hashCount;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -190,6 +197,7 @@ public class VerifyPhoneActivity extends AppCompatActivity {
         // GetUserForNavigation("3103467261");
     }
 
+
     //the method is sending verification code
     //the country id is concatenated
     //you can take the country id as user input as well
@@ -279,7 +287,7 @@ public class VerifyPhoneActivity extends AppCompatActivity {
                                 startActivity(intent);
                             } else {
                                 Intent intent = new Intent(VerifyPhoneActivity.this, MapsActivity.class);
-                                  intent.putExtra("switch", "hash");
+                                intent.putExtra("switch", "hash");
                                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                                 startActivity(intent);
                             }

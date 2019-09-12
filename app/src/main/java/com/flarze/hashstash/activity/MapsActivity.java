@@ -2,6 +2,7 @@ package com.flarze.hashstash.activity;
 
 import android.Manifest;
 import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -47,6 +48,7 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.AuthFailureError;
 import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -95,8 +97,10 @@ import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
 
 import hani.momanii.supernova_emoji_library.Actions.EmojIconActions;
 import hani.momanii.supernova_emoji_library.Helper.EmojiconEditText;
@@ -118,7 +122,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     public static final int MY_PERMISSIONS_REQUEST_LOCATION = 99;
     View view, vi;
     Double lat, lan;
-    String latitude, longitude,locationLatitude,locationLongitude;
+    String latitude, longitude, locationLatitude, locationLongitude;
     private RelativeLayout rootContent;
     private MapView mapView;
     private Location mLastLocation;
@@ -147,7 +151,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private ImageView btn_share_maps, btn_world_maps, btn_friendlist_maps;
     private CircularImageView userProfilePic;
-    private TextView userName, userCountry;
+    private TextView userName, userCountry, userHashes, userStashes;
     private boolean status = true;
 
     public Dialog dialog;
@@ -161,24 +165,25 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private long UPDATE_INTERVAL = 2 * 1000;  /* 10 secs */
     private long FASTEST_INTERVAL = 20000; /* 20 sec */
     private LatLng latLng;
-    private boolean isPermission,permissionStatus=true;
+    private boolean isPermission, permissionStatus = true;
     private Location mLocation;
     private LocationManager mLocationManager;
+    int hashCount = 0, stashCount = 0;
+    private ProgressDialog pDialog;
 
     Calendar calander;
 
     public String Date, Time, hashOrStash, userId, switchHashStash = "hash";
     EmojIconActions emojIconHash, emojIconStash;
     final String TAG = MapsActivity.class.getSimpleName();
-    private String switching="",locationId="",url = null;
+    private String switching = "", locationId = "", url = null;
     public static final int RequestPermissionCode = 7;
     private static final int REQUEST_CODE = 121;
 
-    public String getTime (){
+    public String getTime() {
         calander = Calendar.getInstance();
-        return String.valueOf(calander.getTimeInMillis()/1000);
+        return String.valueOf(calander.getTimeInMillis() / 1000);
     }
-
 
 
     @Override
@@ -198,15 +203,24 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         }
 
-        userId=appPreferences.getString(AppPreferences.TABLE_ID);
+        userId = appPreferences.getString(AppPreferences.TABLE_ID);
+
+//        pDialog = new ProgressDialog(MapsActivity.this);
+//        pDialog.setMessage("Loading Data.. Please wait...");
+//        pDialog.setIndeterminate(false);
+//        pDialog.setCancelable(false);
+//        pDialog.show();
+
+
+
 
         calander = Calendar.getInstance();
-        switching=getIntent().getStringExtra("switch");
+        switching = getIntent().getStringExtra("switch");
         //calander = Calendar.getInstance();
-       // simpledateformat = new SimpleDateFormat("dd-MM-yyyy");
-       // simpleTimeformate = new SimpleDateFormat("HH:mm:ss");
-       // Date = simpleTimeformate.format(calander.getTime());
-        Time = String.valueOf(calander.getTimeInMillis()/1000);
+        // simpledateformat = new SimpleDateFormat("dd-MM-yyyy");
+        // simpleTimeformate = new SimpleDateFormat("HH:mm:ss");
+        // Date = simpleTimeformate.format(calander.getTime());
+        Time = String.valueOf(calander.getTimeInMillis() / 1000);
 
         viewById();
 
@@ -250,7 +264,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 //        });
 
         /////////////////////////////////////////////////////
-
 
 
         hashStashSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -336,8 +349,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         btn_world_maps.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent=new Intent(MapsActivity.this,MapsActivity.class);
-                intent.putExtra("switch","hash");
+                Intent intent = new Intent(MapsActivity.this, MapsActivity.class);
+                intent.putExtra("switch", "hash");
                 startActivity(intent);
             }
         });
@@ -361,29 +374,31 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
 
-    }
+        UserHashCount();
+        UserStashCount();
 
+    }
 
 
     private void locationPermission() {
 
-      //  if(requestSinglePermission()) {
-            // Obtain the SupportMapFragment and get notified when the map is ready to be used.
-            //it was pre written
-            SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                    .findFragmentById(R.id.map);
-            mapFragment.getMapAsync(this);
+        //  if(requestSinglePermission()) {
+        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
+        //it was pre written
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
 
-            mGoogleApiClient = new GoogleApiClient.Builder(this)
-                    .addConnectionCallbacks(this)
-                    .addOnConnectionFailedListener(this)
-                    .addApi(LocationServices.API)
-                    .build();
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(LocationServices.API)
+                .build();
 
-            mLocationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+        mLocationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
 
-            checkLocation(); //check whether location service is enable or not in your  phone
-     //   }
+        checkLocation(); //check whether location service is enable or not in your  phone
+        //   }
 
     }
 
@@ -399,12 +414,16 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         View hView = navigationView.getHeaderView(0);
         userProfilePic = hView.findViewById(R.id.userProfilePic);
         userName = hView.findViewById(R.id.userName);
-        if(appPreferences.getString(AppPreferences.PROFILE_PIC).contains("")){
+        userHashes = hView.findViewById(R.id.hashes_count);
+        userStashes = hView.findViewById(R.id.stashes_count);
+
+        if (appPreferences.getString(AppPreferences.PROFILE_PIC).contains("")) {
             userProfilePic.setImageResource(R.drawable.demoman);
-        }else {
+        } else {
             Picasso.with(this).load(appPreferences.getString(AppPreferences.PROFILE_PIC)).into(userProfilePic);
         }
         userName.setText(appPreferences.getString(AppPreferences.USER_NAME));
+
     }
 
     private void friendListRecycler() {
@@ -450,8 +469,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private void locationListShown() {
 
-          String HttpUrl = "https://api.tomtom.com/search/2/search/store.json?key=7eIbPrsJGRDCSQzW4tSaa7N3nDtH03lj&lat=" + latitude + "&lon=" + longitude + "&radius=100000";
-       // String HttpUrl = "https://api.tomtom.com/search/2/search/food.json?key=7eIbPrsJGRDCSQzW4tSaa7N3nDtH03lj&lat=23.777176&lon=90.399452&radius=100000";
+        String HttpUrl = "https://api.tomtom.com/search/2/search/store.json?key=7eIbPrsJGRDCSQzW4tSaa7N3nDtH03lj&lat=" + latitude + "&lon=" + longitude + "&radius=100000";
+        // String HttpUrl = "https://api.tomtom.com/search/2/search/food.json?key=7eIbPrsJGRDCSQzW4tSaa7N3nDtH03lj&lat=23.777176&lon=90.399452&radius=100000";
 
         RequestQueue requestQueue;
         requestQueue = Volley.newRequestQueue(MapsActivity.this);
@@ -527,7 +546,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             drawer.closeDrawer(GravityCompat.START);
         } else {
             //super.onBackPressed();
-            startActivity(new Intent(MapsActivity.this,SigninActivity.class));
+            startActivity(new Intent(MapsActivity.this, SigninActivity.class));
         }
     }
 
@@ -578,13 +597,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             @Override
             public void onInfoWindowClick(Marker arg0) {
-                    Intent intent = new Intent(MapsActivity.this, MainActivity.class);
-                    intent.putExtra("main", "hash list");
-                    intent.putExtra("latitude", locationLatitude);
-                    intent.putExtra("longitude", locationLongitude);
-                    intent.putExtra("userId", userId);
-                    intent.putExtra("hashOrStash", switchHashStash);
-                    startActivity(intent);
+                Intent intent = new Intent(MapsActivity.this, MainActivity.class);
+                intent.putExtra("main", "hash list");
+                intent.putExtra("latitude", locationLatitude);
+                intent.putExtra("longitude", locationLongitude);
+                intent.putExtra("userId", userId);
+                intent.putExtra("hashOrStash", switchHashStash);
+                startActivity(intent);
 
             }
 
@@ -609,66 +628,66 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private void getHashorStashWithinKm() {
 
-        String HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/" + userId + "/hash-or-stash/" + switchHashStash + "/coordinates/" + latitude + "/" + longitude+"/1200.0";
-       // String HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/5/hash-or-stash/hash/coordinates/22.84564/89.540329/2.0";
-        Toast.makeText(this, ""+HttpUrl, Toast.LENGTH_SHORT).show();
+        String HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/" + userId + "/hash-or-stash/" + switchHashStash + "/coordinates/" + latitude + "/" + longitude + "/1200.0";
+        // String HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/5/hash-or-stash/hash/coordinates/22.84564/89.540329/2.0";
+        Toast.makeText(this, "" + HttpUrl, Toast.LENGTH_SHORT).show();
         RequestQueue requestQueue;
         requestQueue = Volley.newRequestQueue(MapsActivity.this);
         JsonArrayRequest jsArrayRequest = new JsonArrayRequest(Request.Method.GET, HttpUrl, (JSONArray) null, new Response.Listener<JSONArray>() {
 
-                    @Override
-                    public void onResponse(JSONArray response) {
+            @Override
+            public void onResponse(JSONArray response) {
 
-                        try {
+                try {
 
-                            hashStashLists.clear();
-                            locations.clear();
-                            mMap.clear();
-                            markers.clear();
+                    hashStashLists.clear();
+                    locations.clear();
+                    mMap.clear();
+                    markers.clear();
 
-                            for (int i = 0; i < response.length(); i++) {
+                    for (int i = 0; i < response.length(); i++) {
 
-                                JSONObject hashStash = response.getJSONObject(i);
+                        JSONObject hashStash = response.getJSONObject(i);
 
-                                String hashStashId = hashStash.getString("id");
-                                String hashStashComments = hashStash.getString("comments");
-                                String hashStashcmtTime = hashStash.getString("cmtTime");
-                                String hashStashlocation = hashStash.getString("location");
-                                String hashStashlocationId = hashStash.getString("locationId");
-                                String hashStashlatitude = hashStash.getString("latitude");
-                                String hashStashlongitude = hashStash.getString("longitude");
-                                String hashStashduration = hashStash.getString("duration");
+                        String hashStashId = hashStash.getString("id");
+                        String hashStashComments = hashStash.getString("comments");
+                        String hashStashcmtTime = hashStash.getString("cmtTime");
+                        String hashStashlocation = hashStash.getString("location");
+                        String hashStashlocationId = hashStash.getString("locationId");
+                        String hashStashlatitude = hashStash.getString("latitude");
+                        String hashStashlongitude = hashStash.getString("longitude");
+                        String hashStashduration = hashStash.getString("duration");
 
-                                Double lat = Double.parseDouble(hashStash.getString("latitude"));
-                                Double lan = Double.parseDouble(hashStash.getString("longitude"));
+                        Double lat = Double.parseDouble(hashStash.getString("latitude"));
+                        Double lan = Double.parseDouble(hashStash.getString("longitude"));
 
-                                locations.add(new LatLng(lat, lan));
-                                Marker mark = mMap.addMarker(new MarkerOptions()
-                                        .position(locations.get(i))
-                                        .title("" + i)
-                                        .icon(BitmapDescriptorFactory.fromResource(R.drawable.dot_gap_icon))
-                                        .snippet("Click on me:)"));
-                                markers.put(mark.getId(), ""+i);
-                                mMap.moveCamera(CameraUpdateFactory.newLatLng(locations.get(i)));
+                        locations.add(new LatLng(lat, lan));
+                        Marker mark = mMap.addMarker(new MarkerOptions()
+                                .position(locations.get(i))
+                                .title("" + i)
+                                .icon(BitmapDescriptorFactory.fromResource(R.drawable.dot_gap_icon))
+                                .snippet("Click on me:)"));
+                        markers.put(mark.getId(), "" + i);
+                        mMap.moveCamera(CameraUpdateFactory.newLatLng(locations.get(i)));
 
-                                hashStashLists.add(new HashStashList(hashStashId, hashStashComments, hashStashcmtTime, hashStashlocation, hashStashlocationId, hashStashlatitude, hashStashlongitude, hashStashduration));
-
-                            }
-
-                        } catch (JSONException e) {
-                            // pDialog.hide();
-                            e.printStackTrace();
-                        }
-
+                        hashStashLists.add(new HashStashList(hashStashId, hashStashComments, hashStashcmtTime, hashStashlocation, hashStashlocationId, hashStashlatitude, hashStashlongitude, hashStashduration));
 
                     }
-                },
-                        new Response.ErrorListener() {
-                            @Override
-                            public void onErrorResponse(VolleyError volleyError) {
-                                // Toast.makeText(MapsActivity.this, "" + volleyError, Toast.LENGTH_SHORT).show();
-                            }
-                        });
+
+                } catch (JSONException e) {
+                    // pDialog.hide();
+                    e.printStackTrace();
+                }
+
+
+            }
+        },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError volleyError) {
+                        // Toast.makeText(MapsActivity.this, "" + volleyError, Toast.LENGTH_SHORT).show();
+                    }
+                });
 
         // Creating RequestQueue.
         requestQueue = Volley.newRequestQueue(MapsActivity.this);
@@ -698,8 +717,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         // Create the location request
         mLocationRequest = LocationRequest.create()
                 .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-               // .setInterval(UPDATE_INTERVAL)
-               // .setFastestInterval(FASTEST_INTERVAL);
+        // .setInterval(UPDATE_INTERVAL)
+        // .setFastestInterval(FASTEST_INTERVAL);
         // Request location updates
         if (ActivityCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
@@ -863,7 +882,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             marker = marker;
 
 
-
             if (marker.getId() != null && markers != null && markers.size() > 0) {
                 if (markers.get(marker.getId()) != null &&
                         markers.get(marker.getId()) != null) {
@@ -882,10 +900,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             popularHash.setText(hashStashLists.get(Integer.parseInt(url)).getHashStashComments());
 
 
-            locationId=hashStashLists.get(Integer.parseInt(url)).getHashStashlocationId();
-            locationLatitude=hashStashLists.get(Integer.parseInt(url)).getHashStashlatitude();
-            locationLongitude=hashStashLists.get(Integer.parseInt(url)).getHashStashlongitude();
-
+            locationId = hashStashLists.get(Integer.parseInt(url)).getHashStashlocationId();
+            locationLatitude = hashStashLists.get(Integer.parseInt(url)).getHashStashlatitude();
+            locationLongitude = hashStashLists.get(Integer.parseInt(url)).getHashStashlongitude();
 
 
             return view;
@@ -951,7 +968,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     @Override
                     public void onPermissionGranted(PermissionGrantedResponse response) {
                         //Single Permission is granted
-                      //  Toast.makeText(MapsActivity.this, "Single permission is granted!", Toast.LENGTH_SHORT).show();
+                        //  Toast.makeText(MapsActivity.this, "Single permission is granted!", Toast.LENGTH_SHORT).show();
                         isPermission = true;
                     }
 
@@ -972,9 +989,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         return isPermission;
 
     }
-
-
-
 
 
     private String convertToUTF8(String str) {
@@ -1013,12 +1027,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     if (CameraPermission && RecordAudioPermission && SendSMSPermission) {
 
                         Toast.makeText(MapsActivity.this, "Permission Granted", Toast.LENGTH_SHORT).show();
-                        appPreferences.putBoolean(AppPreferences.PERMISSIONS,true);
+                        appPreferences.putBoolean(AppPreferences.PERMISSIONS, true);
                         startActivity(new Intent(this, this.getClass()));
 
-                    }
-                    else {
-                        Toast.makeText(MapsActivity.this,"Permission Denied",Toast.LENGTH_LONG).show();
+                    } else {
+                        Toast.makeText(MapsActivity.this, "Permission Denied", Toast.LENGTH_LONG).show();
 
                     }
                 }
@@ -1042,4 +1055,82 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     }
 
+    private void UserHashCount() {
+
+
+        RequestQueue requestQueue = Volley.newRequestQueue(this);
+        String URL = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/" + userId + "/hash-or-stash/hashes";
+        final JsonArrayRequest jsonObjReq1 = new JsonArrayRequest(Request.Method.GET, URL, new com.android.volley.Response.Listener<JSONArray>() {
+
+            @Override
+            public void onResponse(JSONArray response) {
+                for(int i = 0; i < response.length(); i++){
+                    hashCount++;
+                }
+                appPreferences.putString(AppPreferences.HASHES, "" + hashCount);
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Toast.makeText(getBaseContext(), error.getMessage(), Toast.LENGTH_LONG).show();
+            }
+        }) {
+            @Override
+            public String getBodyContentType() {
+                return "application/json; charset=utf-8";
+            }
+
+            @Override
+            public Map getHeaders() throws AuthFailureError {
+                HashMap headers = new HashMap();
+                headers.put("Content-Type", "application/json");
+                return headers;
+            }
+
+        };
+
+        requestQueue.add(jsonObjReq1);
+        userHashes.setText(appPreferences.getString(AppPreferences.HASHES));
+
+
+    }
+
+    private void UserStashCount() {
+
+
+        RequestQueue requestQueue = Volley.newRequestQueue(this);
+        String URL = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/" + userId + "/hash-or-stash/stashes";
+        final JsonArrayRequest jsonObjReq1 = new JsonArrayRequest(Request.Method.GET, URL, new com.android.volley.Response.Listener<JSONArray>() {
+
+            @Override
+            public void onResponse(JSONArray response) {
+                for(int i = 0; i < response.length(); i++){
+                    stashCount++;
+                }
+                appPreferences.putString(AppPreferences.STASHES, "" + stashCount);
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Toast.makeText(getBaseContext(), error.getMessage(), Toast.LENGTH_LONG).show();
+            }
+        }) {
+            @Override
+            public String getBodyContentType() {
+                return "application/json; charset=utf-8";
+            }
+
+            @Override
+            public Map getHeaders() throws AuthFailureError {
+                HashMap headers = new HashMap();
+                headers.put("Content-Type", "application/json");
+                return headers;
+            }
+
+        };
+
+        requestQueue.add(jsonObjReq1);
+
+        userStashes.setText(appPreferences.getString(AppPreferences.STASHES));
+    }
 }

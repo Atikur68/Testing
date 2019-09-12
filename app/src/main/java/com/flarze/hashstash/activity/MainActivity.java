@@ -36,7 +36,7 @@ public class MainActivity extends AppCompatActivity
     private ImageView userProfilePic;
     private String navOption;
     private AppPreferences appPreferences = null;
-    private TextView userName,userCountry;
+    private TextView userName,userCountry,userHashes,userStashes;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,12 +81,16 @@ public class MainActivity extends AppCompatActivity
         View hView = navigationView.getHeaderView(0);
         userProfilePic = hView.findViewById(R.id.userProfilePic);
         userName=hView.findViewById(R.id.userName);
+        userHashes = hView.findViewById(R.id.hashes_count);
+        userStashes = hView.findViewById(R.id.stashes_count);
         if(appPreferences.getString(AppPreferences.PROFILE_PIC).contains("")){
             userProfilePic.setImageResource(R.drawable.demoman);
         }else {
             Picasso.with(this).load(appPreferences.getString(AppPreferences.PROFILE_PIC)).into(userProfilePic);
         }
         userName.setText(appPreferences.getString(AppPreferences.USER_NAME));
+        userHashes.setText(appPreferences.getString(AppPreferences.HASHES));
+        userStashes.setText(appPreferences.getString(AppPreferences.STASHES));
 
         userProfilePic.setOnClickListener(new View.OnClickListener() {
             @Override

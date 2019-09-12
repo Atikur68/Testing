@@ -19,6 +19,7 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.AuthFailureError;
@@ -83,6 +84,7 @@ public class UserProfileActivity extends AppCompatActivity {
     private String image;
     private ProgressDialog progressDialog;
     public String HttpUrl;
+    private TextView hashes_counts,stashes_counts;
 
     public static String getRealPathFromUri(Context context, Uri contentUri) {
         Cursor cursor = null;
@@ -112,6 +114,11 @@ public class UserProfileActivity extends AppCompatActivity {
         profile_image = findViewById(R.id.profile_image);
         editProfile = findViewById(R.id.editProfile);
         editProfileDone = findViewById(R.id.editProfileDone);
+        hashes_counts = findViewById(R.id.hashes_counts);
+        stashes_counts = findViewById(R.id.stashes_counts);
+
+        hashes_counts.setText(appPreferences.getString(AppPreferences.HASHES));
+        stashes_counts.setText(appPreferences.getString(AppPreferences.STASHES));
 
         if (appPreferences.getString(AppPreferences.PROFILE_PIC).contains("")) {
             profile_image.setImageResource(R.drawable.demoman);
