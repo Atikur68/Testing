@@ -205,21 +205,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         userId = appPreferences.getString(AppPreferences.TABLE_ID);
 
-//        pDialog = new ProgressDialog(MapsActivity.this);
-//        pDialog.setMessage("Loading Data.. Please wait...");
-//        pDialog.setIndeterminate(false);
-//        pDialog.setCancelable(false);
-//        pDialog.show();
-
-
-
 
         calander = Calendar.getInstance();
         switching = getIntent().getStringExtra("switch");
-        //calander = Calendar.getInstance();
-        // simpledateformat = new SimpleDateFormat("dd-MM-yyyy");
-        // simpleTimeformate = new SimpleDateFormat("HH:mm:ss");
-        // Date = simpleTimeformate.format(calander.getTime());
         Time = String.valueOf(calander.getTimeInMillis() / 1000);
 
         viewById();
@@ -230,38 +218,38 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         locationPermission();
 
-//        emojIconHash = new EmojIconActions(this, view, edt_hash_comment, hashEmojibtn);
-//        emojIconHash.ShowEmojIcon();
-//        emojIconHash.setIconsIds(R.drawable.ic_action_keyboard, R.drawable.happy_grey);
-//        emojIconHash.setKeyboardListener(new EmojIconActions.KeyboardListener() {
-//            @Override
-//            public void onKeyboardOpen() {
-//                Log.e(TAG, "Keyboard opened!");
-//            }
-//
-//            @Override
-//            public void onKeyboardClose() {
-//                Log.e(TAG, "Keyboard closed");
-//
-//            }
-//        });
+        emojIconHash = new EmojIconActions(this, view, edt_hash_comment, hashEmojibtn);
+        emojIconHash.ShowEmojIcon();
+        emojIconHash.setIconsIds(R.drawable.ic_action_keyboard, R.drawable.happy_grey);
+        emojIconHash.setKeyboardListener(new EmojIconActions.KeyboardListener() {
+            @Override
+            public void onKeyboardOpen() {
+                Log.e(TAG, "Keyboard opened!");
+            }
+
+            @Override
+            public void onKeyboardClose() {
+                Log.e(TAG, "Keyboard closed");
+
+            }
+        });
 
 
-//        emojIconStash = new EmojIconActions(this, view, edt_shash_comment, stashEmojibtn);
-//        emojIconStash.ShowEmojIcon();
-//        emojIconStash.setIconsIds(R.drawable.ic_action_keyboard, R.drawable.happy_grey);
-//        emojIconStash.setKeyboardListener(new EmojIconActions.KeyboardListener() {
-//            @Override
-//            public void onKeyboardOpen() {
-//                Log.e(TAG, "Keyboard opened!");
-//            }
-//
-//            @Override
-//            public void onKeyboardClose() {
-//                Log.e(TAG, "Keyboard closed");
-//
-//            }
-//        });
+        emojIconStash = new EmojIconActions(this, view, edt_shash_comment, stashEmojibtn);
+        emojIconStash.ShowEmojIcon();
+        emojIconStash.setIconsIds(R.drawable.ic_action_keyboard, R.drawable.happy_grey);
+        emojIconStash.setKeyboardListener(new EmojIconActions.KeyboardListener() {
+            @Override
+            public void onKeyboardOpen() {
+                Log.e(TAG, "Keyboard opened!");
+            }
+
+            @Override
+            public void onKeyboardClose() {
+                Log.e(TAG, "Keyboard closed");
+
+            }
+        });
 
         /////////////////////////////////////////////////////
 
@@ -461,6 +449,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         hashCaptureButton = findViewById(R.id.hashCaptureButton);
         stashEmojibtn = findViewById(R.id.stashEmojibtn);
         hashEmojibtn = findViewById(R.id.hashEmojibtn);
+        view = findViewById(R.id.root_content);
 
     }
 
