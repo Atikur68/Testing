@@ -83,12 +83,15 @@ public class MainActivity extends AppCompatActivity
         userName=hView.findViewById(R.id.userName);
         userHashes = hView.findViewById(R.id.hashes_count);
         userStashes = hView.findViewById(R.id.stashes_count);
+        userCountry = hView.findViewById(R.id.userCountry);
+
         if(appPreferences.getString(AppPreferences.PROFILE_PIC).contains("")){
             userProfilePic.setImageResource(R.drawable.demoman);
         }else {
             Picasso.with(this).load(appPreferences.getString(AppPreferences.PROFILE_PIC)).into(userProfilePic);
         }
         userName.setText(appPreferences.getString(AppPreferences.USER_NAME));
+        userCountry.setText(appPreferences.getString(AppPreferences.USER_COUNTRY));
         userHashes.setText(appPreferences.getString(AppPreferences.HASHES));
         userStashes.setText(appPreferences.getString(AppPreferences.STASHES));
 

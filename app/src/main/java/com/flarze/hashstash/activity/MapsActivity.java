@@ -416,6 +416,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         userName = hView.findViewById(R.id.userName);
         userHashes = hView.findViewById(R.id.hashes_count);
         userStashes = hView.findViewById(R.id.stashes_count);
+        userCountry = hView.findViewById(R.id.userCountry);
 
         if (appPreferences.getString(AppPreferences.PROFILE_PIC).contains("")) {
             userProfilePic.setImageResource(R.drawable.demoman);
@@ -423,6 +424,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             Picasso.with(this).load(appPreferences.getString(AppPreferences.PROFILE_PIC)).into(userProfilePic);
         }
         userName.setText(appPreferences.getString(AppPreferences.USER_NAME));
+        userCountry.setText(appPreferences.getString(AppPreferences.USER_COUNTRY));
 
     }
 

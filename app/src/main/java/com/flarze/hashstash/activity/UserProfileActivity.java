@@ -84,7 +84,7 @@ public class UserProfileActivity extends AppCompatActivity {
     private String image;
     private ProgressDialog progressDialog;
     public String HttpUrl;
-    private TextView hashes_counts,stashes_counts;
+    private TextView hashes_counts,stashes_counts,profile_usename,profile_coountry;
 
     public static String getRealPathFromUri(Context context, Uri contentUri) {
         Cursor cursor = null;
@@ -116,9 +116,13 @@ public class UserProfileActivity extends AppCompatActivity {
         editProfileDone = findViewById(R.id.editProfileDone);
         hashes_counts = findViewById(R.id.hashes_counts);
         stashes_counts = findViewById(R.id.stashes_counts);
+        profile_usename = findViewById(R.id.profile_usename);
+        profile_coountry = findViewById(R.id.profile_coountry);
 
         hashes_counts.setText(appPreferences.getString(AppPreferences.HASHES));
         stashes_counts.setText(appPreferences.getString(AppPreferences.STASHES));
+        profile_usename.setText(appPreferences.getString(AppPreferences.NAME));
+        profile_coountry.setText(appPreferences.getString(AppPreferences.USER_COUNTRY));
 
         if (appPreferences.getString(AppPreferences.PROFILE_PIC).contains("")) {
             profile_image.setImageResource(R.drawable.demoman);

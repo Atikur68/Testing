@@ -72,7 +72,7 @@
             android:id="@+id/profile_usename"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_above="@+id/profile_email"
+            android:layout_above="@+id/profile_coountry"
             android:layout_marginBottom="0dp"
             android:gravity="center"
             android:text="Loading..."
@@ -81,7 +81,7 @@
             android:textStyle="bold" />
 
         <TextView
-            android:id="@+id/profile_email"
+            android:id="@+id/profile_coountry"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
