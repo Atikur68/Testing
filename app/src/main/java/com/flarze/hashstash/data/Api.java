@@ -20,7 +20,7 @@ public interface Api {
 
     //  String BASE_URL = "http://192.168.43.178:8080/mavenFileUpload/rest/upload/";
     // String BASE_URL = "http://192.168.43.178/hashstash/hashOrStash.postman_collection.json";
-    String BASE_URL = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/8/";
+    String BASE_URL = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/10/";
     //String BASE_URL = new UserProfileActivity().HttpUrl;
     @Multipart
     @PUT("images")

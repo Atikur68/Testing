@@ -72,7 +72,7 @@ public class LocationListAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
         private ImageView locationImage;
         private TextView locationName;
-        String comment, time, date, location, locationid, latitude, longitude, hashorstash, userId;
+        String comment, time, date, location, locationid, latitude, longitude, hashorstash, userId,selector="HASH";
 
 
         public TeamViewHolder(View itemView) {
@@ -90,8 +90,10 @@ public class LocationListAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
                     if (hashorstash.contains("hash")) {
                         comment = ((MapsActivity) context).edt_hash_comment_str;
+                        selector="HASH";
                     } else {
                          comment=((MapsActivity)context).edt_shash_comment_str;
+                        selector="STASH";
                     }
 
                     try {
@@ -125,7 +127,7 @@ public class LocationListAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                         param.put("latitude", longitude);
                         param.put("longitude", longitude);
                         param.put("duration", "120");
-                        param.put("hashOrStash", "HASH");
+                        param.put("hashOrStash", selector);
 
                         final String requestBody = param.toString();
 

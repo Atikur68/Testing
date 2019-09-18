@@ -108,7 +108,7 @@ public class UserProfileActivity extends AppCompatActivity {
 
         appPreferences = new AppPreferences(this);
 
-        HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/" + appPreferences.getString(AppPreferences.TABLE_ID) + "/images";
+        HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/" + appPreferences.getString(AppPreferences.TABLE_ID) + "/";
 
         toolBarProfile = findViewById(R.id.toolBarProfile);
         profile_image = findViewById(R.id.profile_image);
@@ -124,10 +124,12 @@ public class UserProfileActivity extends AppCompatActivity {
         profile_usename.setText(appPreferences.getString(AppPreferences.NAME));
         profile_coountry.setText(appPreferences.getString(AppPreferences.USER_COUNTRY));
 
-        if (appPreferences.getString(AppPreferences.PROFILE_PIC).contains("")) {
+        if (!appPreferences.getString(AppPreferences.PROFILE_PIC).contains("images")) {
             profile_image.setImageResource(R.drawable.demoman);
         } else {
-            Picasso.with(this).load(appPreferences.getString(AppPreferences.PROFILE_PIC)).into(profile_image);
+            String imageValues=appPreferences.getString(AppPreferences.PROFILE_PIC).substring(47);
+            String imageValue="http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/"+imageValues;
+            Picasso.with(this).load(imageValue).into(profile_image);
         }
 
         setSupportActionBar(toolBarProfile);
@@ -205,80 +207,6 @@ public class UserProfileActivity extends AppCompatActivity {
 
     private void uploadFile(final String image) {
 
-    //    Toast.makeText(UserProfileActivity.this, image, Toast.LENGTH_SHORT).show();
-
-        //       Map<String, String> params = new HashMap<String, String>();
-        // Adding All values to Params.
-//        params.put("id", appPreferences.getString(AppPreferences.TABLE_ID));
-//        params.put("name", appPreferences.getString(AppPreferences.NAME));
-//        params.put("username", appPreferences.getString(AppPreferences.USER_NAME));
-//        params.put("password", appPreferences.getString(AppPreferences.USER_PASSWORD));
-//        params.put("phone", appPreferences.getString(AppPreferences.USER_PHONE));
-//        params.put("email", appPreferences.getString(AppPreferences.USER_EMAIL));
-//        params.put("country", appPreferences.getString(AppPreferences.USER_COUNTRY));
-        //       params.put("image", image);
-
-
-//        String HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/"+appPreferences.getString(AppPreferences.TABLE_ID)+"/images";
-//
-//        Toast.makeText(this, ""+HttpUrl, Toast.LENGTH_SHORT).show();
-//        JsonObjectRequest jsonObjReq = new JsonObjectRequest(Request.Method.PUT,
-//                HttpUrl, new JSONObject(params), new com.android.volley.Response.Listener<JSONObject>() {
-//
-//            @Override
-//            public void onResponse(JSONObject response) {
-//
-//                Log.d("response:", response.toString());
-//                try {
-//
-//                    appPreferences.clear();
-//                    Toast.makeText(UserProfileActivity.this, ""+response, Toast.LENGTH_SHORT).show();
-//                    appPreferences.putString(AppPreferences.TABLE_ID, response.getString("id"));
-//                    appPreferences.putString(AppPreferences.USER_NAME, response.getString("username"));
-//                    appPreferences.putString(AppPreferences.NAME, response.getString("name"));
-//                    appPreferences.putString(AppPreferences.USER_PASSWORD, response.getString("password"));
-//                    appPreferences.putString(AppPreferences.USER_PHONE, response.getString("phone"));
-//                    appPreferences.putString(AppPreferences.USER_EMAIL, response.getString("email"));
-//                    appPreferences.putString(AppPreferences.USER_COUNTRY, response.getString("country"));
-//                    appPreferences.putString(AppPreferences.PROFILE_PIC, response.getString("image"));
-//
-//                    editProfile.setVisibility(VISIBLE);
-//                    editProfileDone.setVisibility(GONE);
-//
-//                } catch (JSONException e) {
-//                    e.printStackTrace();
-//                }
-//
-//
-//            }
-//        }, new Response.ErrorListener() {
-//
-//            @Override
-//            public void onErrorResponse(VolleyError error) {
-//                Toast.makeText(getApplicationContext(), error.getMessage(), Toast.LENGTH_SHORT).show();
-//            }
-//        });
-//
-//
-//        RequestQueue requestQueue;
-//        //  Creating RequestQueue.
-//        requestQueue = Volley.newRequestQueue(this);
-//        // Adding the StringRequest object into requestQueue.
-//        requestQueue.add(jsonObjReq);
-
-
-//        Map<String, String> params = new HashMap<String, String>();
-//        // Adding All values to Params.
-//        params.put("name", appPreferences.getString(AppPreferences.NAME));
-//        params.put("username", appPreferences.getString(AppPreferences.USER_NAME));
-//        params.put("password", appPreferences.getString(AppPreferences.USER_PASSWORD));
-//        params.put("phone", appPreferences.getString(AppPreferences.USER_PHONE));
-//        params.put("email", appPreferences.getString(AppPreferences.USER_EMAIL));
-//        params.put("country", appPreferences.getString(AppPreferences.USER_COUNTRY));
-//        params.put("image", image);
-
-
-
         RequestQueue requestQueue;
         progressDialog = new ProgressDialog(this);
         progressDialog.setMessage("Uploading... ");
@@ -338,8 +266,6 @@ public class UserProfileActivity extends AppCompatActivity {
     private void uploadFile(Uri fileUri) {
         final String[] successMessage = {""};
         // create upload service client
-
-
         // https://github.com/iPaulPro/aFileChooser/blob/master/aFileChooser/src/com/ipaulpro/afilechooser/utils/FileUtils.java
         // use the FileUtils to get the actual file by uri
         File file = FileUtils.getFile(getRealPathFromUri(this, fileUri));
@@ -362,22 +288,8 @@ public class UserProfileActivity extends AppCompatActivity {
                 .setLenient()
                 .create();
 
-//        mUser.setName(userNameEditText.getText().toString());
-//        mUser.setCountry(locationEditText.getText().toString());
-//        // mUser.setImage(file.getName());
-//        mUser.setImage(time + "." + extension);
-
-        //to delete image and store at same name
-//        if (mUser.getPhone() != "Default_mobile")
-//            mUser.setImage(mUser.getPhone() + "." + extension);
-//        else if (mUser.getEmail() != "default_email@gmail.com") {
-//            String email = mUser.getEmail();
-//            mUser.setImage(email.substring(0, email.lastIndexOf("@")) + "." + extension);
-//        }
-
-
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(Api.BASE_URL)
+                .baseUrl(HttpUrl)
                 .addConverterFactory(GsonConverterFactory.create(gson)) //Here we are using the GsonConverterFactory to directly convert json data to object
                 .build();
         Api api = retrofit.create(Api.class);
@@ -398,6 +310,80 @@ public class UserProfileActivity extends AppCompatActivity {
             public void onFailure(Call<String> call, Throwable t) {
                 Log.e("Upload error:", t.getMessage());
             }
+
         });
+        progressDialog = new ProgressDialog(UserProfileActivity.this);
+        progressDialog.setMessage("Loading..."); // Setting Message
+        progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER); // Progress Dialog Style Spinner
+        progressDialog.show(); // Display Progress Dialog
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(5000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        getUsers();
+                    }
+                });
+            }
+        }).start();
+
+
+
+    }
+
+    public void getUsers() {
+
+
+
+        String HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/"+appPreferences.getString(AppPreferences.TABLE_ID);
+
+
+        RequestQueue requestQueue;
+        requestQueue = Volley.newRequestQueue(UserProfileActivity.this);
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, HttpUrl,
+                new com.android.volley.Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        try {
+                            final JSONObject jsonObject = new JSONObject(response);
+                            // Process your json here as required
+
+                            appPreferences.putString(AppPreferences.TABLE_ID, jsonObject.getString("id"));
+                            appPreferences.putString(AppPreferences.USER_NAME, jsonObject.getString("username"));
+                            appPreferences.putString(AppPreferences.NAME, jsonObject.getString("name"));
+                            appPreferences.putString(AppPreferences.USER_PASSWORD, jsonObject.getString("password"));
+                            appPreferences.putString(AppPreferences.USER_PHONE, jsonObject.getString("phone"));
+                            appPreferences.putString(AppPreferences.USER_EMAIL, jsonObject.getString("email"));
+                            appPreferences.putString(AppPreferences.USER_COUNTRY, jsonObject.getString("country"));
+                            appPreferences.putString(AppPreferences.PROFILE_PIC, jsonObject.getString("image"));
+
+                            editProfile.setVisibility(VISIBLE);
+                            editProfileDone.setVisibility(GONE);
+                            progressDialog.dismiss();
+
+                        } catch (JSONException e) {
+
+                        }
+                    }
+                },
+                new com.android.volley.Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError volleyError) {
+
+                    }
+                });
+
+        // Creating RequestQueue.
+        requestQueue = Volley.newRequestQueue(UserProfileActivity.this);
+        // Adding the StringRequest object into requestQueue.
+        requestQueue.add(stringRequest);
+
     }
 }

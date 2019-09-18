@@ -88,7 +88,9 @@ public class MainActivity extends AppCompatActivity
         if(appPreferences.getString(AppPreferences.PROFILE_PIC).contains("")){
             userProfilePic.setImageResource(R.drawable.demoman);
         }else {
-            Picasso.with(this).load(appPreferences.getString(AppPreferences.PROFILE_PIC)).into(userProfilePic);
+            String imageValues=appPreferences.getString(AppPreferences.PROFILE_PIC).substring(47);
+            String imageValue="http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/"+imageValues;
+            Picasso.with(this).load(imageValue).into(userProfilePic);
         }
         userName.setText(appPreferences.getString(AppPreferences.USER_NAME));
         userCountry.setText(appPreferences.getString(AppPreferences.USER_COUNTRY));

@@ -406,10 +406,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         userStashes = hView.findViewById(R.id.stashes_count);
         userCountry = hView.findViewById(R.id.userCountry);
 
-        if (appPreferences.getString(AppPreferences.PROFILE_PIC).contains("")) {
+        if (!appPreferences.getString(AppPreferences.PROFILE_PIC).contains("images")) {
             userProfilePic.setImageResource(R.drawable.demoman);
         } else {
-            Picasso.with(this).load(appPreferences.getString(AppPreferences.PROFILE_PIC)).into(userProfilePic);
+            String imageValues=appPreferences.getString(AppPreferences.PROFILE_PIC).substring(47);
+            String imageValue="http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/"+imageValues;
+            Picasso.with(this).load(imageValue).into(userProfilePic);
+
         }
         userName.setText(appPreferences.getString(AppPreferences.USER_NAME));
         userCountry.setText(appPreferences.getString(AppPreferences.USER_COUNTRY));
@@ -619,7 +622,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private void getHashorStashWithinKm() {
 
-        String HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/" + userId + "/hash-or-stash/" + switchHashStash + "/coordinates/" + latitude + "/" + longitude + "/1200.0";
+        String HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/" + userId + "/hash-or-stash/" + switchHashStash + "/coordinates/" + latitude + "/" + longitude + "/120000.0";
         // String HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/5/hash-or-stash/hash/coordinates/22.84564/89.540329/2.0";
         Toast.makeText(this, "" + HttpUrl, Toast.LENGTH_SHORT).show();
         RequestQueue requestQueue;
