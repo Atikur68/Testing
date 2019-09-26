@@ -29,6 +29,9 @@ import com.flarze.hashstash.fragment.HashFragment;
 import com.flarze.hashstash.fragment.InviteFriend;
 import com.squareup.picasso.Picasso;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
@@ -114,15 +117,18 @@ public class MainActivity extends AppCompatActivity
         }
         if (navOption.contains("hash list")) {
 
-            Bundle bundles = new Bundle();
+            Bundle bundles = getIntent().getExtras();
             String locationLatitude = getIntent().getStringExtra("latitude");
             String locationLongitude = getIntent().getStringExtra("longitude");
             String userId = getIntent().getStringExtra("userId");
             String hashOrStash = getIntent().getStringExtra("hashOrStash");
+            List<String> votedHash = bundle.getStringArrayList("votedHashes");
+
             bundle.putString("latitude", locationLatitude );
             bundle.putString("longitude", locationLongitude );
             bundle.putString("userId", userId );
             bundle.putString("hashOrStash", hashOrStash );
+            bundle.putStringArrayList("votedHashes", (ArrayList<String>)votedHash );
             HashFragment fragInfo = new HashFragment();
             fragInfo.setArguments(bundle);
 

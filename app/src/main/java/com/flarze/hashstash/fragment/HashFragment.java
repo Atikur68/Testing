@@ -47,8 +47,9 @@ public class HashFragment extends Fragment {
     private RecyclerView recyclerView;
     private Hash_adapter adapter;
     private List<Hash_List> hashLists = new ArrayList<>();
+    private List<String> votedHashList = new ArrayList<>();
     View view;
-    private String locationLatitude = "",locationLongitude = "", hashOrStash = "", userId = "",storeNames="";
+    private String locationLatitude = "", locationLongitude = "", hashOrStash = "", userId = "", storeNames = "";
     private TextView storeName;
     private AppPreferences appPreferences = null;
     public MapsActivity mapsActivity;
@@ -56,6 +57,7 @@ public class HashFragment extends Fragment {
 
     public HashFragment() {
         // Required empty public constructor
+
     }
 
 //    @Override
@@ -69,8 +71,8 @@ public class HashFragment extends Fragment {
         super.onCreate(savedInstanceState);
         getActivity().invalidateOptionsMenu();
         setHasOptionsMenu(true);
-      //  mapsActivity = (MapsActivity) getActivity();
-       // hashOrStash = mapsActivity.hashOrStash;
+        //  mapsActivity = (MapsActivity) getActivity();
+        // hashOrStash = mapsActivity.hashOrStash;
 
     }
 
@@ -84,19 +86,19 @@ public class HashFragment extends Fragment {
 
 //        appPreferences = new AppPreferences(getContext());
 //
-        locationLatitude=bundle.getString("latitude");
-        locationLongitude=bundle.getString("longitude");
+        locationLatitude = bundle.getString("latitude");
+        locationLongitude = bundle.getString("longitude");
 
-        userId=bundle.getString("userId");
-        hashOrStash=bundle.getString("hashOrStash");
+        userId = bundle.getString("userId");
+        hashOrStash = bundle.getString("hashOrStash");
+        votedHashList = bundle.getStringArrayList("votedHashes");
 
         getActivity().setTitle("HashList");
 
-        storeName =  view.findViewById(R.id.storeName);
+        storeName = view.findViewById(R.id.storeName);
         recyclerView = (RecyclerView) view.findViewById(R.id.hash_recycler);
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
-
 
 
         getHashStashByLocation();
@@ -108,9 +110,9 @@ public class HashFragment extends Fragment {
     private void getHashStashByLocation() {
         String HttpUrl = "";
         if (hashOrStash.contains("hash")) {
-            HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/hash-or-stash/hashes/locations/" + locationLatitude+"/"+locationLongitude;
+            HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/hash-or-stash/hashes/locations/" + locationLatitude + "/" + locationLongitude;
         } else {
-            HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/" + userId + "/hash-or-stash/stashes/locations/" + locationLatitude+"/"+locationLongitude;
+            HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/" + userId + "/hash-or-stash/stashes/locations/" + locationLatitude + "/" + locationLongitude;
         }
 
 
@@ -129,6 +131,7 @@ public class HashFragment extends Fragment {
                             hashLists.clear();
 
                             for (int i = 0; i < response.length(); i++) {
+                                int status = 0;
 
                                 JSONObject hashStash = response.getJSONObject(i);
                                 String hashStashId = hashStash.getString("id");
@@ -141,21 +144,33 @@ public class HashFragment extends Fragment {
                                 String hashStashduration = hashStash.getString("duration");
 
 
-                                storeNames=hashStashlocation;
+                                storeNames = hashStashlocation;
 
                                 long num = Long.valueOf(hashStashcmtTime);
-                                 simpledateformat = new SimpleDateFormat("dd-MM-yyyy");
-                                 simpleTimeformate = new SimpleDateFormat("HH:mm:ss");
+                                simpledateformat = new SimpleDateFormat("dd-MM-yyyy");
+                                simpleTimeformate = new SimpleDateFormat("HH:mm:ss");
 
-                                 String time=simpleTimeformate.format(new Date(num* 1000L));
-                                 String date=simpledateformat.format(new Date(num* 1000L));
+                                String time = simpleTimeformate.format(new Date(num * 1000L));
+                                String date = simpledateformat.format(new Date(num * 1000L));
 
-                                hashLists.add(new Hash_List(R.drawable.demoman,hashStashId, hashStashComments, date, time));
+                                for (int v = 0; v < votedHashList.size(); v++) {
+                                    if (hashStashId.equals(votedHashList.get(v))) {
+                                        status = 1;
+                                        break;
+                                    }
+                                    else
+                                        status = 0;
+                                }
+
+                                if (status==1)
+                                    hashLists.add(new Hash_List(R.drawable.demoman, hashStashId, hashStashComments, date, time, 1));
+                                else
+                                    hashLists.add(new Hash_List(R.drawable.demoman, hashStashId, hashStashComments, date, time, 0));
 
 
                             }
                             storeName.setText(storeNames);
-                            adapter = new Hash_adapter(getContext(), hashLists,userId);
+                            adapter = new Hash_adapter(getContext(), hashLists, userId);
                             recyclerView.setAdapter(adapter);
 
                         } catch (JSONException e) {

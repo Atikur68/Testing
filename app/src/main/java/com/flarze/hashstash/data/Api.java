@@ -33,19 +33,8 @@ public interface Api {
 //                             @Part("country") String country
     );
 
-    @Multipart
-    @POST("savehashwithimage/")
-    Call<String> SaveHashUploadImage(@Part MultipartBody.Part image, @Part("file") RequestBody file,
-                                     @Part("path") String path,
-                                     @Part("userid") String userid,
-                                     @Part("comments") String comments,
-                                     @Part("cmtTime") long cmtTime,
-                                     @Part("location") String location,
-                                     @Part("locationId") String locationId,
-                                     @Part("latitute") String latitute,
-                                     @Part("longitute") String longitute,
-                                     @Part("duration") long duration,
-                                     @Part("hashOrStash") String hashOrStash
+    @PUT("votes")
+    Call<String> VoteForHash(
     );
 
     @GET("savehashorstash/{userid}/{comments}/{cmtTime}/{location}/{locationId}/{latitute}/{longitute}/{duration}/{hashOrStash}")

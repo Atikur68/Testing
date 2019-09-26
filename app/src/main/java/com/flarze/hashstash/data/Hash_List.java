@@ -6,22 +6,27 @@ public class Hash_List {
     private String hashcomment, times,userId,date,friendsName;
     boolean toggleCheck;
     private long cmtTime;
-    private int voteCount;
-    private String profileImage,hashId;
+    private int voteCount,voteStatus;
+    private String profileImage,hashId,votedHashId;
     private String hashImage,stashImage;
     private long expiration;
 
-    public Hash_List(int friendlist,String friendsName) {
+    public Hash_List(String votedHashId) {
+        this.votedHashId = votedHashId;
+    }
+
+    public Hash_List(int friendlist, String friendsName) {
         this.friendlist = friendlist;
         this.friendsName = friendsName;
     }
 
-    public Hash_List(int images,String hashId, String hashcomment, String date, String time){
+    public Hash_List(int images,String hashId, String hashcomment, String date, String time,int voteStatus){
         this.images = images;
         this.hashcomment = hashcomment;
         this.date = date;
         this.times = time;
         this.hashId=hashId;
+        this.voteStatus=voteStatus;
     }
 
 
@@ -36,6 +41,14 @@ public class Hash_List {
         this.voteCount = voteCount;
         this.expiration = expiration;
 
+    }
+
+    public int getVoteStatus() {
+        return voteStatus;
+    }
+
+    public String getVotedHashId() {
+        return votedHashId;
     }
 
     public String getHashId() {

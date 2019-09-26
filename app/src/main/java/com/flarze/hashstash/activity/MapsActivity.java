@@ -61,6 +61,7 @@ import com.flarze.hashstash.R;
 import com.flarze.hashstash.data.FriendList_adapter;
 import com.flarze.hashstash.data.HashStashList;
 import com.flarze.hashstash.data.Hash_List;
+import com.flarze.hashstash.data.Hash_adapter;
 import com.flarze.hashstash.data.LocationList;
 import com.flarze.hashstash.data.LocationListAdapter;
 import com.flarze.hashstash.data.instagram_login.AppPreferences;
@@ -97,6 +98,7 @@ import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
@@ -145,6 +147,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private RecyclerView recyclerView, locationlistRecycler;
     private FriendList_adapter adapter;
     private List<Hash_List> friendLists = new ArrayList<>();
+    public List<String> votedHashList = new ArrayList<>();
     private List<LocationList> locationLists = new ArrayList<>();
     private List<HashStashList> hashStashLists = new ArrayList<>();
     private ArrayList<LatLng> locations = new ArrayList();
@@ -364,6 +367,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         UserHashCount();
         UserStashCount();
+        getUserVote();
 
     }
 
@@ -409,8 +413,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (!appPreferences.getString(AppPreferences.PROFILE_PIC).contains("images")) {
             userProfilePic.setImageResource(R.drawable.demoman);
         } else {
-            String imageValues=appPreferences.getString(AppPreferences.PROFILE_PIC).substring(47);
-            String imageValue="http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/"+imageValues;
+            String imageValues = appPreferences.getString(AppPreferences.PROFILE_PIC).substring(47);
+            String imageValue = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/" + imageValues;
             Picasso.with(this).load(imageValue).into(userProfilePic);
 
         }
@@ -463,7 +467,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private void locationListShown() {
 
-        String HttpUrl = "https://api.tomtom.com/search/2/search/store.json?key=7eIbPrsJGRDCSQzW4tSaa7N3nDtH03lj&lat=" + latitude + "&lon=" + longitude + "&radius=100000";
+        String HttpUrl = "https://api.tomtom.com/search/2/search/store.json?key=7eIbPrsJGRDCSQzW4tSaa7N3nDtH03lj&lat=" + latitude + "&lon=" + longitude + "&radius=2000";
         // String HttpUrl = "https://api.tomtom.com/search/2/search/food.json?key=7eIbPrsJGRDCSQzW4tSaa7N3nDtH03lj&lat=23.777176&lon=90.399452&radius=100000";
 
         RequestQueue requestQueue;
@@ -581,7 +585,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-
+        if (latLng != null) {
+            // mMap.addMarker(new MarkerOptions().position(latLng).title("Marker in Current Location"));
+            mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+            mMap.animateCamera(CameraUpdateFactory.zoomTo(11));
+        }
+        googleMap.animateCamera(CameraUpdateFactory.zoomTo(10), 2000, null);
 
         markers = new Hashtable<String, String>();
 
@@ -597,6 +606,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 intent.putExtra("longitude", locationLongitude);
                 intent.putExtra("userId", userId);
                 intent.putExtra("hashOrStash", switchHashStash);
+                intent.putStringArrayListExtra("votedHashes",(ArrayList<String>)votedHashList);
                 startActivity(intent);
 
             }
@@ -607,22 +617,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         getHashorStashWithinKm();
 
 
-        googleMap.animateCamera(CameraUpdateFactory.zoomTo(10), 2000, null);
-
-
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-        if (latLng != null) {
-            // mMap.addMarker(new MarkerOptions().position(latLng).title("Marker in Current Location"));
-            mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
-            mMap.animateCamera(CameraUpdateFactory.zoomTo(11));
-        }
 
     }
 
     private void getHashorStashWithinKm() {
 
-        String HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/" + userId + "/hash-or-stash/" + switchHashStash + "/coordinates/" + latitude + "/" + longitude + "/120000.0";
+        String HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/" + userId + "/hash-or-stash/" + switchHashStash + "/coordinates/" + latitude + "/" + longitude + "/12000.0";
         // String HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/5/hash-or-stash/hash/coordinates/22.84564/89.540329/2.0";
         Toast.makeText(this, "" + HttpUrl, Toast.LENGTH_SHORT).show();
         RequestQueue requestQueue;
@@ -1058,7 +1060,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             @Override
             public void onResponse(JSONArray response) {
-                for(int i = 0; i < response.length(); i++){
+                for (int i = 0; i < response.length(); i++) {
                     hashCount++;
                 }
                 appPreferences.putString(AppPreferences.HASHES, "" + hashCount);
@@ -1098,7 +1100,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             @Override
             public void onResponse(JSONArray response) {
-                for(int i = 0; i < response.length(); i++){
+                for (int i = 0; i < response.length(); i++) {
                     stashCount++;
                 }
                 appPreferences.putString(AppPreferences.STASHES, "" + stashCount);
@@ -1127,4 +1129,48 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         userStashes.setText(appPreferences.getString(AppPreferences.STASHES));
     }
+
+    public void getUserVote() {
+        String HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/10/hash-or-stash/votes";
+        RequestQueue requestQueue;
+        requestQueue = Volley.newRequestQueue(MapsActivity.this);
+        JsonArrayRequest jsArrayRequest = new JsonArrayRequest
+                (Request.Method.GET, HttpUrl, (JSONArray) null, new Response.Listener<JSONArray>() {
+
+
+                    @Override
+                    public void onResponse(JSONArray response) {
+
+                        try {
+                            votedHashList.clear();
+
+                            for (int i = 0; i < response.length(); i++) {
+
+                                JSONObject hashStash = response.getJSONObject(i);
+                                String votedHashStashId = hashStash.getString("hashStashId");
+                                votedHashList.add(votedHashStashId);
+                            }
+
+                        } catch (JSONException e) {
+                            // pDialog.hide();
+                            e.printStackTrace();
+                        }
+
+
+                    }
+                },
+                        new Response.ErrorListener() {
+                            @Override
+                            public void onErrorResponse(VolleyError volleyError) {
+                                // Toast.makeText(MapsActivity.this, "" + volleyError, Toast.LENGTH_SHORT).show();
+                            }
+                        });
+
+        // Creating RequestQueue.
+        requestQueue = Volley.newRequestQueue(MapsActivity.this);
+        // Adding the StringRequest object into requestQueue.
+        requestQueue.add(jsArrayRequest);
+
+    }
+
 }
