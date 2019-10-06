@@ -10,6 +10,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.flarze.hashstash.R;
+import com.flarze.hashstash.data.instagram_login.AppPreferences;
+import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
@@ -36,8 +38,9 @@ public class FriendList_adapter extends RecyclerView.Adapter<RecyclerView.ViewHo
 
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
-
-        ((UserViewHolder) holder).friends_image.setImageResource(friendList.get(position).getFriendlist());
+        String imageValues = friendList.get(position).getFriendlist();
+        String imageValue = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/" + imageValues;
+        Picasso.with(mcontext).load(imageValue).into(((UserViewHolder) holder).friends_image);
         ((UserViewHolder) holder).friends_name.setText(friendList.get(position).getFriendsName());
 
     }

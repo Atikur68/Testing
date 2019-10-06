@@ -127,7 +127,7 @@ public class UserProfileActivity extends AppCompatActivity {
         if (!appPreferences.getString(AppPreferences.PROFILE_PIC).contains("images")) {
             profile_image.setImageResource(R.drawable.demoman);
         } else {
-            String imageValues=appPreferences.getString(AppPreferences.PROFILE_PIC).substring(47);
+            String imageValues=appPreferences.getString(AppPreferences.PROFILE_PIC);
             String imageValue="http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/"+imageValues;
             Picasso.with(this).load(imageValue).into(profile_image);
         }

@@ -2,21 +2,21 @@ package com.flarze.hashstash.data;
 
 public class Hash_List {
 
-    private int images, dates,friendlist;
+    private int images, dates;
     private String hashcomment, times,userId,date,friendsName;
     boolean toggleCheck;
     private long cmtTime;
     private int voteCount,voteStatus;
     private String profileImage,hashId,votedHashId;
-    private String hashImage,stashImage;
+    private String hashImage,stashImage,friendImage;
     private long expiration;
 
     public Hash_List(String votedHashId) {
         this.votedHashId = votedHashId;
     }
 
-    public Hash_List(int friendlist, String friendsName) {
-        this.friendlist = friendlist;
+    public Hash_List(String friendlist, String friendsName) {
+        this.friendImage = friendlist;
         this.friendsName = friendsName;
     }
 
@@ -59,8 +59,8 @@ public class Hash_List {
         return friendsName;
     }
 
-    public int getFriendlist() {
-        return friendlist;
+    public String getFriendlist() {
+        return friendImage;
     }
 
     public String getUserId() {

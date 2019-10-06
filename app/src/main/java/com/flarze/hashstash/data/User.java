@@ -13,7 +13,7 @@ public class User implements Serializable {
    private String email;
    private String image;
    private String country;
-   private String userId;
+   private String userId,popularUserId;
 
   public User(int id, String name, String username, String phone, String password, String email, String image, String country) {
         this.id = id;
@@ -26,7 +26,8 @@ public class User implements Serializable {
         this.country = country;
     }
 
-    public User() {
+    public User(String popularUserId) {
+      this.popularUserId=popularUserId;
     }
 
     public User(int id, String name, String phone, String email, String image) {
@@ -43,6 +44,10 @@ public class User implements Serializable {
         this.image = image;
     }
 
+
+    public String getPopularUserId() {
+        return popularUserId;
+    }
 
     public String getUserId() {
         return userId;

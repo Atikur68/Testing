@@ -148,6 +148,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private FriendList_adapter adapter;
     private List<Hash_List> friendLists = new ArrayList<>();
     public List<String> votedHashList = new ArrayList<>();
+    public List<String> popularUserId = new ArrayList<>();
     private List<LocationList> locationLists = new ArrayList<>();
     private List<HashStashList> hashStashLists = new ArrayList<>();
     private ArrayList<LatLng> locations = new ArrayList();
@@ -217,7 +218,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         drawerInit();
 
-        friendListRecycler();
 
         locationPermission();
 
@@ -354,6 +354,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public void onClick(View v) {
                 if (status == true) {
+                    getUserImageFromPopular();
                     friendlist_layout_maps.setVisibility(View.VISIBLE);
                     friendlist_layout_maps.startAnimation(leftToRight);
                     status = false;
@@ -368,6 +369,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         UserHashCount();
         UserStashCount();
         getUserVote();
+        friendListRecycler();
 
     }
 
@@ -413,7 +415,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (!appPreferences.getString(AppPreferences.PROFILE_PIC).contains("images")) {
             userProfilePic.setImageResource(R.drawable.demoman);
         } else {
-            String imageValues = appPreferences.getString(AppPreferences.PROFILE_PIC).substring(47);
+            // String imageValues = appPreferences.getString(AppPreferences.PROFILE_PIC).substring(47);
+            String imageValues = appPreferences.getString(AppPreferences.PROFILE_PIC);
             String imageValue = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/" + imageValues;
             Picasso.with(this).load(imageValue).into(userProfilePic);
 
@@ -427,12 +430,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(MapsActivity.this, LinearLayoutManager.HORIZONTAL, false));
 
-        friendLists.add(new Hash_List(R.drawable.newfriend_icon, "New"));
-        friendLists.add(new Hash_List(R.drawable.demoman, "You"));
-        friendLists.add(new Hash_List(R.drawable.demoman, "John"));
-        friendLists.add(new Hash_List(R.drawable.demoman, "Atik"));
-        adapter = new FriendList_adapter(this, friendLists);
-        recyclerView.setAdapter(adapter);
+        //  friendLists.add(new Hash_List(R.drawable.newfriend_icon, "New"));
+
+
     }
 
     private void viewById() {
@@ -606,7 +606,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 intent.putExtra("longitude", locationLongitude);
                 intent.putExtra("userId", userId);
                 intent.putExtra("hashOrStash", switchHashStash);
-                intent.putStringArrayListExtra("votedHashes",(ArrayList<String>)votedHashList);
+                intent.putStringArrayListExtra("votedHashes", (ArrayList<String>) votedHashList);
                 startActivity(intent);
 
             }
@@ -700,6 +700,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         latitude = String.valueOf(location.getLatitude());
         longitude = String.valueOf(location.getLongitude());
         getHashorStashWithinKm();
+        getUserFromPopular();
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         //it was pre written
@@ -728,6 +729,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
         LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, (com.google.android.gms.location.LocationListener) this);
         getHashorStashWithinKm();
+        // getUserFromPopular();
 
 
     }
@@ -1131,7 +1133,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     public void getUserVote() {
-        String HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/10/hash-or-stash/votes";
+        String HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/" + userId + "/hash-or-stash/votes";
         RequestQueue requestQueue;
         requestQueue = Volley.newRequestQueue(MapsActivity.this);
         JsonArrayRequest jsArrayRequest = new JsonArrayRequest
@@ -1173,4 +1175,96 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     }
 
+    public void getUserFromPopular() {
+        String HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/hash-or-stash/locations/" + latitude + "/" + longitude + "/populars";
+        Toast.makeText(this, "" + HttpUrl, Toast.LENGTH_SHORT).show();
+        RequestQueue requestQueue;
+        requestQueue = Volley.newRequestQueue(MapsActivity.this);
+        JsonArrayRequest jsArrayRequest = new JsonArrayRequest
+                (Request.Method.GET, HttpUrl, (JSONArray) null, new Response.Listener<JSONArray>() {
+
+
+                    @Override
+                    public void onResponse(JSONArray response) {
+
+                        try {
+                            popularUserId.clear();
+
+                            for (int i = 0; i < response.length(); i++) {
+
+                                JSONObject hashStash = response.getJSONObject(i);
+                                String popularUsersId = hashStash.getString("userId");
+                                popularUserId.add(popularUsersId);
+                            }
+
+                        } catch (JSONException e) {
+                            // pDialog.hide();
+                            e.printStackTrace();
+                        }
+
+
+                    }
+                },
+                        new Response.ErrorListener() {
+                            @Override
+                            public void onErrorResponse(VolleyError volleyError) {
+                                // Toast.makeText(MapsActivity.this, "" + volleyError, Toast.LENGTH_SHORT).show();
+                            }
+                        });
+
+        // Creating RequestQueue.
+        requestQueue = Volley.newRequestQueue(MapsActivity.this);
+        // Adding the StringRequest object into requestQueue.
+        requestQueue.add(jsArrayRequest);
+
+    }
+
+    public void getUserImageFromPopular() {
+        if (popularUserId.size() > 0) {
+            for (int j = 0; j < popularUserId.size(); j++) {
+
+                String popUserId = popularUserId.get(j);
+                String HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/" +popUserId;
+                Toast.makeText(this, "" + HttpUrl, Toast.LENGTH_SHORT).show();
+                RequestQueue requestQueue;
+                requestQueue = Volley.newRequestQueue(MapsActivity.this);
+                StringRequest stringRequest = new StringRequest(Request.Method.GET, HttpUrl,
+                        new com.android.volley.Response.Listener<String>() {
+                            @Override
+                            public void onResponse(String response) {
+                                try {
+
+                                    final JSONObject jsonObject = new JSONObject(response);
+
+                                    String popularUsersImage = jsonObject.getString("image");
+                                    String popularUsersName = jsonObject.getString("username");
+                                    friendLists.add(new Hash_List(popularUsersImage, popularUsersName));
+
+
+                                } catch (JSONException e) {
+                                    // pDialog.hide();
+                                    e.printStackTrace();
+                                }
+
+
+                            }
+                        },
+                        new Response.ErrorListener() {
+                            @Override
+                            public void onErrorResponse(VolleyError volleyError) {
+                                // Toast.makeText(MapsActivity.this, "" + volleyError, Toast.LENGTH_SHORT).show();
+                            }
+                        });
+
+                // Creating RequestQueue.
+                requestQueue = Volley.newRequestQueue(MapsActivity.this);
+                // Adding the StringRequest object into requestQueue.
+                requestQueue.add(stringRequest);
+
+            }
+
+            adapter = new FriendList_adapter(this, friendLists);
+            recyclerView.setAdapter(adapter);
+        }
+    }
 }
