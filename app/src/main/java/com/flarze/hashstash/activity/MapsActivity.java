@@ -8,7 +8,9 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.location.Geocoder;
 import android.location.Location;
@@ -58,6 +60,7 @@ import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.flarze.hashstash.R;
+import com.flarze.hashstash.data.Api;
 import com.flarze.hashstash.data.FriendList_adapter;
 import com.flarze.hashstash.data.HashStashList;
 import com.flarze.hashstash.data.Hash_List;
@@ -78,6 +81,8 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.karumi.dexter.Dexter;
 import com.karumi.dexter.PermissionToken;
 import com.karumi.dexter.listener.PermissionDeniedResponse;
@@ -87,6 +92,8 @@ import com.karumi.dexter.listener.single.PermissionListener;
 import com.mikhaellopez.circularimageview.CircularImageView;
 import com.squareup.picasso.Picasso;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -106,13 +113,22 @@ import java.util.Map;
 
 import hani.momanii.supernova_emoji_library.Actions.EmojIconActions;
 import hani.momanii.supernova_emoji_library.Helper.EmojiconEditText;
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
 import pub.devrel.easypermissions.AppSettingsDialog;
 import pub.devrel.easypermissions.EasyPermissions;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 import static android.Manifest.permission.READ_CONTACTS;
 import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
+import static android.view.View.GONE;
+import static android.view.View.VISIBLE;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, NavigationView.OnNavigationItemSelectedListener, com.google.android.gms.location.LocationListener, GoogleApiClient.ConnectionCallbacks,
@@ -148,7 +164,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private FriendList_adapter adapter;
     private List<Hash_List> friendLists = new ArrayList<>();
     public List<String> votedHashList = new ArrayList<>();
-    public List<String> popularUserId = new ArrayList<>();
+    public List<Hash_List> popularUserId = new ArrayList<>();
     private List<LocationList> locationLists = new ArrayList<>();
     private List<HashStashList> hashStashLists = new ArrayList<>();
     private ArrayList<LatLng> locations = new ArrayList();
@@ -183,6 +199,25 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private String switching = "", locationId = "", url = null;
     public static final int RequestPermissionCode = 7;
     private static final int REQUEST_CODE = 121;
+    private static int RESULT_LOAD_IMG = 1;
+    private Uri selectedImage;
+    private String pathss = "";
+    private ProgressDialog progressDialog;
+
+    public static String getRealPathFromUri(Context context, Uri contentUri) {
+        Cursor cursor = null;
+        try {
+            String[] proj = {MediaStore.Images.Media.DATA};
+            cursor = context.getContentResolver().query(contentUri, proj, null, null, null);
+            int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+            cursor.moveToFirst();
+            return cursor.getString(column_index);
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+        }
+    }
 
     public String getTime() {
         calander = Calendar.getInstance();
@@ -215,10 +250,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         Time = String.valueOf(calander.getTimeInMillis() / 1000);
 
         viewById();
-
         drawerInit();
-
-
+        // friendListRecycler();
         locationPermission();
 
         emojIconHash = new EmojIconActions(this, view, edt_hash_comment, hashEmojibtn);
@@ -255,6 +288,26 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         });
 
         /////////////////////////////////////////////////////
+
+        hashCaptureButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent galleryIntent = new Intent(Intent.ACTION_PICK,
+                        android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                // Start the Intent
+                startActivityForResult(galleryIntent, RESULT_LOAD_IMG);
+            }
+        });
+
+        stashCaptureButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent galleryIntent = new Intent(Intent.ACTION_PICK,
+                        android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                // Start the Intent
+                startActivityForResult(galleryIntent, RESULT_LOAD_IMG);
+            }
+        });
 
 
         hashStashSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -353,24 +406,55 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         btn_friendlist_maps.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (status == true) {
-                    getUserImageFromPopular();
-                    friendlist_layout_maps.setVisibility(View.VISIBLE);
-                    friendlist_layout_maps.startAnimation(leftToRight);
-                    status = false;
-                } else {
-                    friendlist_layout_maps.startAnimation(rightToLeft);
-                    status = true;
-                    friendlist_layout_maps.setVisibility(View.GONE);
-                }
+
+                friendListRecycler();
+
             }
         });
 
         UserHashCount();
         UserStashCount();
         getUserVote();
-        friendListRecycler();
 
+
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        try {
+            if (requestCode == RESULT_LOAD_IMG && resultCode == RESULT_OK && null != data) {
+                selectedImage = data.getData();
+                String[] filePathColumn = {MediaStore.Images.Media.DATA};
+                Cursor cursor = this.getContentResolver().query(selectedImage, filePathColumn, null, null, null);
+                cursor.moveToFirst();
+                int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
+                pathss = cursor.getString(columnIndex);
+                Toast.makeText(this, pathss.toString(), Toast.LENGTH_LONG).show();
+                cursor.close();
+                File imgFile = new File(pathss);
+
+                if (imgFile.exists()) {
+
+                    Bitmap myBitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
+                    //  image = getStringImage(myBitmap);
+                    //  Toast.makeText(UserProfileActivity.this, "" + image, Toast.LENGTH_SHORT).show();
+//                    profile_image.setImageBitmap(myBitmap);
+//                    editProfile.setVisibility(GONE);
+//                    editProfileDone.setVisibility(VISIBLE);
+
+                }
+
+            } else {
+                Toast.makeText(this, "You haven't picked Image",
+                        Toast.LENGTH_LONG).show();
+            }
+        } catch (Exception e) {
+            Toast.makeText(this, "Something went wrong" + e.toString(), Toast.LENGTH_LONG)
+                    .show();
+
+
+        }
     }
 
 
@@ -430,8 +514,70 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(MapsActivity.this, LinearLayoutManager.HORIZONTAL, false));
 
-        //  friendLists.add(new Hash_List(R.drawable.newfriend_icon, "New"));
+        for (int j = 0; j < popularUserId.size(); j++) {
 
+            String popUserId = popularUserId.get(j).getVotedHashId();
+            String HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/" + popUserId;
+
+            RequestQueue requestQueue;
+            requestQueue = Volley.newRequestQueue(MapsActivity.this);
+            StringRequest stringRequest = new StringRequest(Request.Method.GET, HttpUrl,
+                    new com.android.volley.Response.Listener<String>() {
+                        @Override
+                        public void onResponse(String response) {
+                            try {
+                                friendLists.clear();
+                                final JSONObject jsonObject = new JSONObject(response);
+
+                                String popularUsersImage = jsonObject.getString("image");
+                                String popularUsersName = jsonObject.getString("username");
+                                friendLists.add(new Hash_List(popularUsersImage, popularUsersName));
+
+                                // Toast.makeText(MapsActivity.this, ""+popularUsersImage+"  ..."+popularUsersName, Toast.LENGTH_SHORT).show();
+
+
+                            } catch (JSONException e) {
+                                // pDialog.hide();
+                                e.printStackTrace();
+                            }
+
+
+                        }
+                    },
+                    new Response.ErrorListener() {
+                        @Override
+                        public void onErrorResponse(VolleyError volleyError) {
+                            // Toast.makeText(MapsActivity.this, "" + volleyError, Toast.LENGTH_SHORT).show();
+                        }
+                    });
+
+            // Creating RequestQueue.
+            requestQueue = Volley.newRequestQueue(MapsActivity.this);
+            // Adding the StringRequest object into requestQueue.
+            requestQueue.add(stringRequest);
+
+            // }
+        }
+
+        String imageValues = appPreferences.getString(AppPreferences.PROFILE_PIC);
+
+        //  friendLists.add(new Hash_List(imageValues, "Atik"));
+        adapter = new FriendList_adapter(this, friendLists);
+        recyclerView.setAdapter(adapter);
+
+        //  friendLists.add(new Hash_List(R.drawable.newfriend_icon, "New"));
+        if (status == true) {
+
+            friendlist_layout_maps.setVisibility(View.VISIBLE);
+            friendlist_layout_maps.startAnimation(leftToRight);
+            status = false;
+
+            // getUserImageFromPopular();
+        } else {
+            friendlist_layout_maps.startAnimation(rightToLeft);
+            status = true;
+            friendlist_layout_maps.setVisibility(View.GONE);
+        }
 
     }
 
@@ -483,6 +629,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                                 JSONArray heroArray = obj.optJSONArray("results");
                                 //  locationLists.clear();
+                                locationLists.add(new LocationList(R.mipmap.ic_launcher, "Shikerpur", "22.8151625", "90.0611301", "123459"));
 
                                 for (int i = 0; i < heroArray.length(); i++) {
 
@@ -626,7 +773,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         String HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/" + userId + "/hash-or-stash/" + switchHashStash + "/coordinates/" + latitude + "/" + longitude + "/12000.0";
         // String HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/5/hash-or-stash/hash/coordinates/22.84564/89.540329/2.0";
-        Toast.makeText(this, "" + HttpUrl, Toast.LENGTH_SHORT).show();
+        // Toast.makeText(this, "" + HttpUrl, Toast.LENGTH_SHORT).show();
         RequestQueue requestQueue;
         requestQueue = Volley.newRequestQueue(MapsActivity.this);
         JsonArrayRequest jsArrayRequest = new JsonArrayRequest(Request.Method.GET, HttpUrl, (JSONArray) null, new Response.Listener<JSONArray>() {
@@ -690,6 +837,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         // Adding the StringRequest object into requestQueue.
         requestQueue.add(jsArrayRequest);
 
+
     }
 
     @Override
@@ -735,8 +883,95 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
 
-    public void dialogDismiss() {
+    public void dialogDismiss(String hashStashId) {
         dialog.dismiss();
+        String HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/hash-or-stash/" + hashStashId + "/";
+        // String HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/" + appPreferences.getString(AppPreferences.TABLE_ID) + "/";
+        if (selectedImage != null)
+            uploadFile(selectedImage, HttpUrl);
+        else
+            startActivity(new Intent(this, this.getClass()));
+
+    }
+
+    private void uploadFile(Uri fileUri, String HttpUrl) {
+        final String[] successMessage = {""};
+        // create upload service client
+        // https://github.com/iPaulPro/aFileChooser/blob/master/aFileChooser/src/com/ipaulpro/afilechooser/utils/FileUtils.java
+        // use the FileUtils to get the actual file by uri
+        File file = FileUtils.getFile(getRealPathFromUri(MapsActivity.this, fileUri));
+
+        RequestBody requestFile = RequestBody.create(
+                MediaType.parse("application/json; charset=utf-8"), file);
+
+        // RequestBody reqFile = RequestBody.create(MediaType.parse("image/*"), file);
+        MultipartBody.Part body = MultipartBody.Part.createFormData("file", file.getName(), requestFile);
+        //  RequestBody name = RequestBody.create(MediaType.parse("text/plain"), "file");
+        // RequestBody name = RequestBody.create(MediaType.parse("multipart/form-data"), file.getName());
+        RequestBody name = RequestBody.create(okhttp3.MultipartBody.FORM, file.getName());
+
+        //------------------------
+        long time = System.currentTimeMillis();
+        String extension = FilenameUtils.getExtension(file.getAbsolutePath());
+        String path = time + "." + extension;
+
+        Gson gson = new GsonBuilder()
+                .setLenient()
+                .create();
+
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(HttpUrl)
+                .addConverterFactory(GsonConverterFactory.create(gson)) //Here we are using the GsonConverterFactory to directly convert json data to object
+                .build();
+        Api api = retrofit.create(Api.class);
+
+        // finally, execute the request
+        Call<String> call = api.UploadImage(body);
+        call.enqueue(new Callback<String>() {
+            @Override
+            public void onResponse(Call<String> call, retrofit2.Response<String> response) {
+
+                // successMessage[0] = response.body();
+                Toast.makeText(MapsActivity.this, "success" + response, Toast.LENGTH_SHORT).show();
+                //  SharedPref.write("user", mUser);
+                Log.v("Upload", "success");
+            }
+
+            @Override
+            public void onFailure(Call<String> call, Throwable t) {
+                Log.e("Upload error:", t.getMessage());
+            }
+
+        });
+
+        progressDialog = new ProgressDialog(MapsActivity.this);
+        progressDialog.setMessage("Loading..."); // Setting Message
+        progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER); // Progress Dialog Style Spinner
+        progressDialog.show(); // Display Progress Dialog
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(5000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        reloadActivity();
+
+                    }
+                });
+            }
+        }).start();
+
+
+    }
+
+    private void reloadActivity() {
+        progressDialog.dismiss();
         startActivity(new Intent(this, this.getClass()));
     }
 
@@ -1176,8 +1411,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     public void getUserFromPopular() {
-        String HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/hash-or-stash/locations/" + latitude + "/" + longitude + "/populars";
-        Toast.makeText(this, "" + HttpUrl, Toast.LENGTH_SHORT).show();
+        //  String HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/hash-or-stash/locations/" + latitude + "/" + longitude + "/populars";
+        String HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/hash-or-stash/locations/22.8151625/90.0611301/populars";
+        // Toast.makeText(this, "" + HttpUrl, Toast.LENGTH_SHORT).show();
         RequestQueue requestQueue;
         requestQueue = Volley.newRequestQueue(MapsActivity.this);
         JsonArrayRequest jsArrayRequest = new JsonArrayRequest
@@ -1194,7 +1430,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                                 JSONObject hashStash = response.getJSONObject(i);
                                 String popularUsersId = hashStash.getString("userId");
-                                popularUserId.add(popularUsersId);
+                                popularUserId.add(new Hash_List(popularUsersId));
                             }
 
                         } catch (JSONException e) {
@@ -1217,54 +1453,56 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         // Adding the StringRequest object into requestQueue.
         requestQueue.add(jsArrayRequest);
 
+
     }
 
     public void getUserImageFromPopular() {
-        if (popularUserId.size() > 0) {
-            for (int j = 0; j < popularUserId.size(); j++) {
+        //  if (popularUserId.size() > 0) {
+        // for (int j = 0; j < popularUserId.size(); j++) {
 
-                String popUserId = popularUserId.get(j);
-                String HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/" +popUserId;
-                Toast.makeText(this, "" + HttpUrl, Toast.LENGTH_SHORT).show();
-                RequestQueue requestQueue;
-                requestQueue = Volley.newRequestQueue(MapsActivity.this);
-                StringRequest stringRequest = new StringRequest(Request.Method.GET, HttpUrl,
-                        new com.android.volley.Response.Listener<String>() {
-                            @Override
-                            public void onResponse(String response) {
-                                try {
+        // String popUserId = popularUserId.get(j);
+        String HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/2";
 
-                                    final JSONObject jsonObject = new JSONObject(response);
+        RequestQueue requestQueue;
+        requestQueue = Volley.newRequestQueue(MapsActivity.this);
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, HttpUrl,
+                new com.android.volley.Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        try {
 
-                                    String popularUsersImage = jsonObject.getString("image");
-                                    String popularUsersName = jsonObject.getString("username");
-                                    friendLists.add(new Hash_List(popularUsersImage, popularUsersName));
+                            final JSONObject jsonObject = new JSONObject(response);
 
+                            String popularUsersImage = jsonObject.getString("image");
+                            String popularUsersName = jsonObject.getString("username");
+                            //  friendLists.add(new Hash_List(popularUsersImage, popularUsersName));
 
-                                } catch (JSONException e) {
-                                    // pDialog.hide();
-                                    e.printStackTrace();
-                                }
+                            Toast.makeText(MapsActivity.this, "" + popularUsersImage + "  ..." + popularUsersName, Toast.LENGTH_SHORT).show();
 
 
-                            }
-                        },
-                        new Response.ErrorListener() {
-                            @Override
-                            public void onErrorResponse(VolleyError volleyError) {
-                                // Toast.makeText(MapsActivity.this, "" + volleyError, Toast.LENGTH_SHORT).show();
-                            }
-                        });
+                        } catch (JSONException e) {
+                            // pDialog.hide();
+                            e.printStackTrace();
+                        }
 
-                // Creating RequestQueue.
-                requestQueue = Volley.newRequestQueue(MapsActivity.this);
-                // Adding the StringRequest object into requestQueue.
-                requestQueue.add(stringRequest);
 
-            }
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError volleyError) {
+                        Toast.makeText(MapsActivity.this, "" + volleyError, Toast.LENGTH_SHORT).show();
+                    }
+                });
 
-            adapter = new FriendList_adapter(this, friendLists);
-            recyclerView.setAdapter(adapter);
-        }
+        // Creating RequestQueue.
+        requestQueue = Volley.newRequestQueue(MapsActivity.this);
+        // Adding the StringRequest object into requestQueue.
+        requestQueue.add(stringRequest);
+
+        //  }
+
+
+        //  }
     }
 }

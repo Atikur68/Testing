@@ -142,6 +142,8 @@ public class HashFragment extends Fragment {
                                 String hashStashlatitude = hashStash.getString("latitude");
                                 String hashStashlongitude = hashStash.getString("longitude");
                                 String hashStashduration = hashStash.getString("duration");
+                                String hashStashImage = hashStash.getString("hashImage");
+                                String hashStashUserImage = hashStash.getString("image");
 
 
                                 storeNames = hashStashlocation;
@@ -163,9 +165,9 @@ public class HashFragment extends Fragment {
                                 }
 
                                 if (status==1)
-                                    hashLists.add(new Hash_List(R.drawable.demoman, hashStashId, hashStashComments, date, time, 1));
+                                    hashLists.add(new Hash_List(hashStashUserImage, hashStashId, hashStashComments, date, time, 1,hashStashImage));
                                 else
-                                    hashLists.add(new Hash_List(R.drawable.demoman, hashStashId, hashStashComments, date, time, 0));
+                                    hashLists.add(new Hash_List(hashStashUserImage, hashStashId, hashStashComments, date, time, 0,hashStashImage));
 
 
                             }

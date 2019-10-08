@@ -33,6 +33,16 @@ public interface Api {
 //                             @Part("country") String country
     );
 
+    @PUT("images")
+    Call<String> UploadImageHashorStash(@Part MultipartBody.Part image
+//                             @Part("path") String path
+//                             @Part("name") String name
+//                             @Part("name") String name,
+//                             @Part("phone") String phone,
+//                             @Part("email") String email,
+//                             @Part("country") String country
+    );
+
     @PUT("votes")
     Call<String> VoteForHash(
     );

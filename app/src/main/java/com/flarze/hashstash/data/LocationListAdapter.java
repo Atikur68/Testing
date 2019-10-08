@@ -1,10 +1,10 @@
 package com.flarze.hashstash.data;
 
+import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.Intent;
+import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,28 +21,25 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.HttpHeaderParser;
-import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.flarze.hashstash.R;
 import com.flarze.hashstash.activity.MapsActivity;
-import com.flarze.hashstash.activity.SignUpActivity;
-import com.flarze.hashstash.data.instagram_login.AppPreferences;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class LocationListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
 
     private List<LocationList> locationLists = new ArrayList<>();
     private Context context;
+    private Uri selectedImage;
+
 
     public LocationListAdapter(List<LocationList> locationLists, Context context) {
         this.locationLists = locationLists;
@@ -72,7 +69,11 @@ public class LocationListAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
         private ImageView locationImage;
         private TextView locationName;
-        String comment, time, date, location, locationid, latitude, longitude, hashorstash, userId,selector="HASH";
+        String comment, time, date, location, locationid, latitude, longitude, hashorstash, userId,selector="HASH",hashStashId="";
+        private ProgressDialog progressDialog;
+
+
+
 
 
         public TeamViewHolder(View itemView) {
@@ -124,7 +125,7 @@ public class LocationListAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                         param.put("cmtTime", time);
                         param.put("location", location);
                         param.put("locationId", locationid);
-                        param.put("latitude", longitude);
+                        param.put("latitude", latitude);
                         param.put("longitude", longitude);
                         param.put("duration", "120");
                         param.put("hashOrStash", selector);
@@ -134,8 +135,17 @@ public class LocationListAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                         StringRequest stringRequest = new StringRequest(Request.Method.POST, URL, new Response.Listener<String>() {
                             @Override
                             public void onResponse(String response) {
-                                Toast.makeText(context,response, Toast.LENGTH_LONG).show();
-                                ((MapsActivity)context).dialogDismiss();
+                                final JSONObject jsonObject;
+                                try {
+                                    jsonObject = new JSONObject(response);
+                                     hashStashId = jsonObject.getString("id");
+                                    Toast.makeText(context,hashStashId, Toast.LENGTH_LONG).show();
+                                    ((MapsActivity)context).dialogDismiss(hashStashId);
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+
+
                             }
                         }, new Response.ErrorListener() {
                             @Override
@@ -181,7 +191,18 @@ public class LocationListAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
 
 
+       // saveHashStashImage(hashStashId);
+
         }
+
+        private void saveHashStashImage(String hashStashId) {
+
+            String HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/hash-or-stash/"+hashStashId+"/";
+           // uploadFile(selectedImage,HttpUrl);
+
+        }
+
+
 
         private Response.Listener<JSONObject> createRequestSuccessListener() {
             Response.Listener listener = new Response.Listener() {

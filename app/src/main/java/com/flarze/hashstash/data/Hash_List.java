@@ -8,7 +8,7 @@ public class Hash_List {
     private long cmtTime;
     private int voteCount,voteStatus;
     private String profileImage,hashId,votedHashId;
-    private String hashImage,stashImage,friendImage;
+    private String hashStashImage,stashImage,friendImage;
     private long expiration;
 
     public Hash_List(String votedHashId) {
@@ -20,13 +20,14 @@ public class Hash_List {
         this.friendsName = friendsName;
     }
 
-    public Hash_List(int images,String hashId, String hashcomment, String date, String time,int voteStatus){
-        this.images = images;
+    public Hash_List(String profileImage,String hashId, String hashcomment, String date, String time,int voteStatus,String hashStashImage){
+        this.profileImage = profileImage;
         this.hashcomment = hashcomment;
         this.date = date;
         this.times = time;
         this.hashId=hashId;
         this.voteStatus=voteStatus;
+        this.hashStashImage=hashStashImage;
     }
 
 
@@ -41,6 +42,10 @@ public class Hash_List {
         this.voteCount = voteCount;
         this.expiration = expiration;
 
+    }
+
+    public String getHashStashImage() {
+        return hashStashImage;
     }
 
     public int getVoteStatus() {
@@ -68,7 +73,7 @@ public class Hash_List {
     }
 
     public String getHashImage() {
-        return hashImage;
+        return hashStashImage;
     }
 
     public String getStashImage() {

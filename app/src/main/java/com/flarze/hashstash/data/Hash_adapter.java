@@ -1,6 +1,10 @@
 package com.flarze.hashstash.data;
 
+import android.app.Dialog;
 import android.content.Context;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.net.Uri;
 import android.support.v7.app.AppCompatDelegate;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -9,6 +13,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
@@ -26,11 +31,13 @@ import com.flarze.hashstash.activity.UserProfileActivity;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.mikhaellopez.circularimageview.CircularImageView;
+import com.squareup.picasso.Picasso;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -72,10 +79,14 @@ public class Hash_adapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
             ((UserViewHolder) holder).button_favorite.setChecked(false);
 
         // Glide.with(mcontext).load(mcontext.getString(R.string.server_base_url_images) + hashList.get(position).getProfileImage()).into(((UserViewHolder) holder).circleImageView);
-        ((UserViewHolder) holder).circleImageView.setImageResource(hashList.get(position).getImages());
+       // ((UserViewHolder) holder).circleImageView.setImageResource(hashList.get(position).getImages());
         ((UserViewHolder) holder).hashcomment.setText(hashList.get(position).getHashcomment());
         ((UserViewHolder) holder).date.setText(hashList.get(position).getDate());
         ((UserViewHolder) holder).time.setText(hashList.get(position).getTime());
+
+        String imageValues = hashList.get(position).getProfileImage();
+        String imageValue = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/" + imageValues;
+        Picasso.with(mcontext).load(imageValue).into(((UserViewHolder) holder).circleImageView);
     }
 
     @Override
@@ -99,6 +110,35 @@ public class Hash_adapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
             time = itemView.findViewById(R.id.txt_time);
             userid = userId;
             button_favorite = itemView.findViewById(R.id.button_favorite);
+
+            hashcomment.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    final Dialog dialog = new Dialog(mcontext);
+                    dialog.setContentView(R.layout.dialoglayout);
+                    dialog.setTitle("Hello");
+
+                    ImageView im = dialog.findViewById(R.id.imageViewHash);
+                    // im.setImageResource(hashList.get(getLayoutPosition()).getHashImage());
+                    if (mcontext != null && im != null){
+                        String imageValues = hashList.get(getLayoutPosition()).getHashStashImage();
+                        String imageValue = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/" + imageValues;
+                        Picasso.with(mcontext).load(imageValue).into(im);
+                    }
+                    ImageView btn = dialog.findViewById(R.id.share_shot);
+                    final LinearLayout layout = dialog.findViewById(R.id.dialogLayoutHashImage);
+                    btn.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            takeScreenshot(ScreenshotType.CUSTOM,v, layout);
+                            dialog.dismiss();
+                        }
+                    });
+
+                    dialog.show();
+                }
+            });
+
             button_favorite.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -109,7 +149,7 @@ public class Hash_adapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
                         String HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/" + userId + "/hash-or-stash/" + hashId + "/hashes/votes";
                         RequestQueue requestQueue;
                         requestQueue = Volley.newRequestQueue(mcontext);
-                        StringRequest stringRequest = new StringRequest(Request.Method.POST, HttpUrl,
+                        StringRequest stringRequest = new StringRequest(Request.Method.PUT, HttpUrl,
                                 new com.android.volley.Response.Listener<String>() {
                                     @Override
                                     public void onResponse(String response) {
@@ -183,6 +223,52 @@ public class Hash_adapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
             });
 
 
+        }
+
+        private void takeScreenshot(ScreenshotType screenshotType, View view, LinearLayout layout) {
+            Bitmap b = null;
+            View rootContent = layout;
+            switch (screenshotType) {
+                case CUSTOM:
+                    //fullPageScreenshot.setVisibility(View.INVISIBLE);//set the visibility to INVISIBLE of first button
+                    //hiddenText.setVisibility(View.VISIBLE);//set the visibility to VISIBLE of hidden text
+
+                    b = ScreenshotUtils.getScreenShot(rootContent);
+
+
+                    //fullPageScreenshot.setVisibility(View.VISIBLE);//set the visibility to VISIBLE of first button again
+                    //hiddenText.setVisibility(View.INVISIBLE);//set the visibility to INVISIBLE of hidden text
+                    break;
+            }
+
+            //If bitmap is not null
+            if (b != null) {
+
+                File saveFile = ScreenshotUtils.getMainDirectoryName(mcontext);//get the path to save screenshot
+                File file = ScreenshotUtils.store(b, "screenshot" + screenshotType + ".jpg", saveFile);//save the screenshot to selected path
+                shareScreenshot(file, view);//finally share screenshot
+            } else {
+                Toast.makeText(mcontext, R.string.screenshot_take_failed, Toast.LENGTH_SHORT).show();
+            }
+
+
+        }
+
+        /*  Show screenshot Bitmap */
+
+
+        /*  Share Screenshot  */
+        private void shareScreenshot(File file, View view) {
+            Uri uri = Uri.fromFile(file);//Convert file path into Uri for sharing
+            Intent intent = new Intent();
+            intent.setAction(Intent.ACTION_SEND);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            intent.setType("image/*");
+            intent.putExtra(android.content.Intent.EXTRA_SUBJECT, "");
+            intent.putExtra(android.content.Intent.EXTRA_TEXT, view.getResources().getString(R.string.sharing_text));
+            intent.putExtra(Intent.EXTRA_STREAM, uri);//pass uri here
+
+            view.getContext().startActivity(Intent.createChooser(intent, view.getResources().getString(R.string.share_title)));
         }
 
 

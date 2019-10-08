@@ -84,7 +84,7 @@ public class UserProfileActivity extends AppCompatActivity {
     private String image;
     private ProgressDialog progressDialog;
     public String HttpUrl;
-    private TextView hashes_counts,stashes_counts,profile_usename,profile_coountry;
+    private TextView hashes_counts, stashes_counts, profile_usename, profile_coountry;
 
     public static String getRealPathFromUri(Context context, Uri contentUri) {
         Cursor cursor = null;
@@ -127,8 +127,8 @@ public class UserProfileActivity extends AppCompatActivity {
         if (!appPreferences.getString(AppPreferences.PROFILE_PIC).contains("images")) {
             profile_image.setImageResource(R.drawable.demoman);
         } else {
-            String imageValues=appPreferences.getString(AppPreferences.PROFILE_PIC);
-            String imageValue="http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/"+imageValues;
+            String imageValues = appPreferences.getString(AppPreferences.PROFILE_PIC);
+            String imageValue = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/" + imageValues;
             Picasso.with(this).load(imageValue).into(profile_image);
         }
 
@@ -153,8 +153,7 @@ public class UserProfileActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (selectedImage != null)
-                   // uploadFile(image);
-                uploadFile(selectedImage);
+                    uploadFile(selectedImage);
 
             }
         });
@@ -184,8 +183,8 @@ public class UserProfileActivity extends AppCompatActivity {
                 if (imgFile.exists()) {
 
                     Bitmap myBitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
-                  //  image = getStringImage(myBitmap);
-                  //  Toast.makeText(UserProfileActivity.this, "" + image, Toast.LENGTH_SHORT).show();
+                    //  image = getStringImage(myBitmap);
+                    //  Toast.makeText(UserProfileActivity.this, "" + image, Toast.LENGTH_SHORT).show();
                     profile_image.setImageBitmap(myBitmap);
                     editProfile.setVisibility(GONE);
                     editProfileDone.setVisibility(VISIBLE);
@@ -205,43 +204,43 @@ public class UserProfileActivity extends AppCompatActivity {
     }
 
 
-    private void uploadFile(final String image) {
-
-        RequestQueue requestQueue;
-        progressDialog = new ProgressDialog(this);
-        progressDialog.setMessage("Uploading... ");
-        progressDialog.show();
-        requestQueue = Volley.newRequestQueue(UserProfileActivity.this);
-        VolleyMultipartRequest volleyMultipartRequest = new VolleyMultipartRequest(Request.Method.POST, HttpUrl,
-                new Response.Listener<NetworkResponse>() {
-                    @Override
-                    public void onResponse(NetworkResponse response) {
-
-                       // Toast.makeText(UserProfileActivity.this, ""+response, Toast.LENGTH_SHORT).show();
-                        progressDialog.dismiss();
-                    }
-                },
-                new com.android.volley.Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError volleyError) {
-                        Toast.makeText(UserProfileActivity.this, "" + volleyError, Toast.LENGTH_SHORT).show();
-                    }
-                }) {
-            @Override
-            protected Map<String, String> getParams()throws AuthFailureError {
-                Map<String, String> params = new HashMap<String, String>();
-                params.put("image", image);
-                return params;
-            }
-
-        };
-
-        // Creating RequestQueue.
-        requestQueue = Volley.newRequestQueue(UserProfileActivity.this);
-        // Adding the StringRequest object into requestQueue.
-        requestQueue.add(volleyMultipartRequest);
-
-    }
+//    private void uploadFile(final String image) {
+//
+//        RequestQueue requestQueue;
+//        progressDialog = new ProgressDialog(this);
+//        progressDialog.setMessage("Uploading... ");
+//        progressDialog.show();
+//        requestQueue = Volley.newRequestQueue(UserProfileActivity.this);
+//        VolleyMultipartRequest volleyMultipartRequest = new VolleyMultipartRequest(Request.Method.POST, HttpUrl,
+//                new Response.Listener<NetworkResponse>() {
+//                    @Override
+//                    public void onResponse(NetworkResponse response) {
+//
+//                       // Toast.makeText(UserProfileActivity.this, ""+response, Toast.LENGTH_SHORT).show();
+//                        progressDialog.dismiss();
+//                    }
+//                },
+//                new com.android.volley.Response.ErrorListener() {
+//                    @Override
+//                    public void onErrorResponse(VolleyError volleyError) {
+//                        Toast.makeText(UserProfileActivity.this, "" + volleyError, Toast.LENGTH_SHORT).show();
+//                    }
+//                }) {
+//            @Override
+//            protected Map<String, String> getParams()throws AuthFailureError {
+//                Map<String, String> params = new HashMap<String, String>();
+//                params.put("image", image);
+//                return params;
+//            }
+//
+//        };
+//
+//        // Creating RequestQueue.
+//        requestQueue = Volley.newRequestQueue(UserProfileActivity.this);
+//        // Adding the StringRequest object into requestQueue.
+//        requestQueue.add(volleyMultipartRequest);
+//
+//    }
 
 
     @Override
@@ -253,14 +252,14 @@ public class UserProfileActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    public String getStringImage(Bitmap bmp) {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        bmp.compress(Bitmap.CompressFormat.JPEG, 100, baos);
-        byte[] imageBytes = baos.toByteArray();
-        String encodedImage = Base64.encodeToString(imageBytes, Base64.DEFAULT);
-        return encodedImage;
-
-    }
+//    public String getStringImage(Bitmap bmp) {
+//        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+//        bmp.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+//        byte[] imageBytes = baos.toByteArray();
+//        String encodedImage = Base64.encodeToString(imageBytes, Base64.DEFAULT);
+//        return encodedImage;
+//
+//    }
 
 
     private void uploadFile(Uri fileUri) {
@@ -282,7 +281,7 @@ public class UserProfileActivity extends AppCompatActivity {
         //------------------------
         long time = System.currentTimeMillis();
         String extension = FilenameUtils.getExtension(file.getAbsolutePath());
-        String path=time + "." + extension;
+        String path = time + "." + extension;
 
         Gson gson = new GsonBuilder()
                 .setLenient()
@@ -301,11 +300,12 @@ public class UserProfileActivity extends AppCompatActivity {
             public void onResponse(Call<String> call,
                                    retrofit2.Response<String> response) {
 
-               // successMessage[0] = response.body();
-                Toast.makeText(UserProfileActivity.this, ""+response, Toast.LENGTH_SHORT).show();
-              //  SharedPref.write("user", mUser);
+                // successMessage[0] = response.body();
+                Toast.makeText(UserProfileActivity.this, "" + response, Toast.LENGTH_SHORT).show();
+                //  SharedPref.write("user", mUser);
                 Log.v("Upload", "success");
             }
+
             @Override
             public void onFailure(Call<String> call, Throwable t) {
                 Log.e("Upload error:", t.getMessage());
@@ -335,14 +335,12 @@ public class UserProfileActivity extends AppCompatActivity {
         }).start();
 
 
-
     }
 
     public void getUsers() {
 
 
-
-        String HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/"+appPreferences.getString(AppPreferences.TABLE_ID);
+        String HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/" + appPreferences.getString(AppPreferences.TABLE_ID);
 
 
         RequestQueue requestQueue;
