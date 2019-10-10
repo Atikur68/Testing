@@ -47,17 +47,21 @@ import retrofit2.Callback;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
+import static android.view.View.GONE;
+import static android.view.View.VISIBLE;
+
 public class Hash_adapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     Context mcontext;
     List<Hash_List> hashList;
     View view;
-    String vote, userId;
+    String vote, userId, hashOrStash;
 
-    public Hash_adapter(Context context, List<Hash_List> hashLists, String userId) {
+    public Hash_adapter(Context context, List<Hash_List> hashLists, String userId, String hashOrStash) {
         this.mcontext = context;
         this.hashList = hashLists;
         this.userId = userId;
+        this.hashOrStash = hashOrStash;
 
     }
 
@@ -75,11 +79,12 @@ public class Hash_adapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
 
         if (hashList.get(position).getVoteStatus() == 1)
             ((UserViewHolder) holder).button_favorite.setChecked(true);
-        else
+        else {
             ((UserViewHolder) holder).button_favorite.setChecked(false);
+        }
 
         // Glide.with(mcontext).load(mcontext.getString(R.string.server_base_url_images) + hashList.get(position).getProfileImage()).into(((UserViewHolder) holder).circleImageView);
-       // ((UserViewHolder) holder).circleImageView.setImageResource(hashList.get(position).getImages());
+        // ((UserViewHolder) holder).circleImageView.setImageResource(hashList.get(position).getImages());
         ((UserViewHolder) holder).hashcomment.setText(hashList.get(position).getHashcomment());
         ((UserViewHolder) holder).date.setText(hashList.get(position).getDate());
         ((UserViewHolder) holder).time.setText(hashList.get(position).getTime());
@@ -99,6 +104,7 @@ public class Hash_adapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         TextView hashcomment, date, time;
         ToggleButton button_favorite;
         String userid, hashId;
+        ImageView sandClock;
 
 
         public UserViewHolder(View itemView) {
@@ -110,6 +116,16 @@ public class Hash_adapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
             time = itemView.findViewById(R.id.txt_time);
             userid = userId;
             button_favorite = itemView.findViewById(R.id.button_favorite);
+            sandClock = itemView.findViewById(R.id.sandClock);
+
+            if (hashOrStash.contains("hash")) {
+                button_favorite.setVisibility(VISIBLE);
+                sandClock.setVisibility(VISIBLE);
+            } else {
+                button_favorite.setVisibility(GONE);
+                sandClock.setVisibility(GONE);
+            }
+
 
             hashcomment.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -120,7 +136,7 @@ public class Hash_adapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
 
                     ImageView im = dialog.findViewById(R.id.imageViewHash);
                     // im.setImageResource(hashList.get(getLayoutPosition()).getHashImage());
-                    if (mcontext != null && im != null){
+                    if (mcontext != null && im != null) {
                         String imageValues = hashList.get(getLayoutPosition()).getHashStashImage();
                         String imageValue = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/" + imageValues;
                         Picasso.with(mcontext).load(imageValue).into(im);
@@ -130,7 +146,7 @@ public class Hash_adapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
                     btn.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            takeScreenshot(ScreenshotType.CUSTOM,v, layout);
+                            takeScreenshot(ScreenshotType.CUSTOM, v, layout);
                             dialog.dismiss();
                         }
                     });
@@ -142,10 +158,18 @@ public class Hash_adapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
             button_favorite.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+//                    if (hashList.get(getLayoutPosition()).getUserIdHashStash().equals(userId))
+//                        button_favorite.setEnabled(false);
+//                    else {
                     Hash_List hash_lists = hashList.get(getLayoutPosition());
                     hashId = hash_lists.getHashId();
                     if (isChecked) {
-
+                        button_favorite.setVisibility(VISIBLE);
+                        if (hashList.get(getLayoutPosition()).getUserIdHashStash().equals(userId)) {
+                            button_favorite.setVisibility(GONE);
+                        }
+                        // else {
+                        // button_favorite.setEnabled(true);
                         String HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/" + userId + "/hash-or-stash/" + hashId + "/hashes/votes";
                         RequestQueue requestQueue;
                         requestQueue = Volley.newRequestQueue(mcontext);
@@ -153,13 +177,13 @@ public class Hash_adapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
                                 new com.android.volley.Response.Listener<String>() {
                                     @Override
                                     public void onResponse(String response) {
-                                        Toast.makeText(mcontext, "Successful", Toast.LENGTH_SHORT).show();
+                                        // Toast.makeText(mcontext, "Successful", Toast.LENGTH_SHORT).show();
                                     }
                                 },
                                 new com.android.volley.Response.ErrorListener() {
                                     @Override
                                     public void onErrorResponse(VolleyError volleyError) {
-                                        Toast.makeText(mcontext, "" + volleyError, Toast.LENGTH_SHORT).show();
+                                        //  Toast.makeText(mcontext, "" + volleyError, Toast.LENGTH_SHORT).show();
                                     }
                                 });
 
@@ -167,36 +191,15 @@ public class Hash_adapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
                         requestQueue = Volley.newRequestQueue(mcontext);
                         // Adding the StringRequest object into requestQueue.
                         requestQueue.add(stringRequest);
+                        // }
 
-//                        Gson gson = new GsonBuilder()
-//                                .setLenient()
-//                                .create();
-//
-//                        Retrofit retrofit = new Retrofit.Builder()
-//                                .baseUrl(HttpUrl)
-//                                .addConverterFactory(GsonConverterFactory.create(gson)) //Here we are using the GsonConverterFactory to directly convert json data to object
-//                                .build();
-//                        Api api = retrofit.create(Api.class);
-//
-//                        // finally, execute the request
-//                        Call<String> call = api.VoteForHash();
-//                        call.enqueue(new Callback<String>() {
-//                            @Override
-//                            public void onResponse(Call<String> call,
-//                                                   retrofit2.Response<String> response) {
-//
-//                                // successMessage[0] = response.body();
-//                                Toast.makeText(mcontext, ""+response, Toast.LENGTH_SHORT).show();
-//                                //  SharedPref.write("user", mUser);
-//                                Log.v("Upload", "success");
-//                            }
-//                            @Override
-//                            public void onFailure(Call<String> call, Throwable t) {
-//                                Log.e("Upload error:", t.getMessage());
-//                            }
-//
-//                        });
+
                     } else {
+                        button_favorite.setVisibility(VISIBLE);
+                        if (hashList.get(getLayoutPosition()).getUserIdHashStash().equals(userId)) {
+                            button_favorite.setVisibility(GONE);
+                        }
+                        // button_favorite.setEnabled(true);
                         String HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/" + userId + "/hash-or-stash/" + hashId + "/hashes/votes";
                         RequestQueue requestQueue;
                         requestQueue = Volley.newRequestQueue(mcontext);
@@ -210,7 +213,7 @@ public class Hash_adapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
                                 new com.android.volley.Response.ErrorListener() {
                                     @Override
                                     public void onErrorResponse(VolleyError volleyError) {
-                                        Toast.makeText(mcontext, "" + volleyError, Toast.LENGTH_SHORT).show();
+                                        //  Toast.makeText(mcontext, "" + volleyError, Toast.LENGTH_SHORT).show();
                                     }
                                 });
                         stringRequest.setRetryPolicy(new DefaultRetryPolicy(10 * 1000, 0, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
@@ -220,6 +223,7 @@ public class Hash_adapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
                         requestQueue.add(stringRequest);
                     }
                 }
+
             });
 
 

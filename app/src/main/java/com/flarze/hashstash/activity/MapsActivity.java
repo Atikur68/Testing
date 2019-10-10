@@ -771,7 +771,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private void getHashorStashWithinKm() {
 
-        String HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/" + userId + "/hash-or-stash/" + switchHashStash + "/coordinates/" + latitude + "/" + longitude + "/12000.0";
+        String HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/" + userId + "/hash-or-stash/" + switchHashStash + "/coordinates/" + latitude + "/" + longitude + "/2.0";
         // String HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/5/hash-or-stash/hash/coordinates/22.84564/89.540329/2.0";
         // Toast.makeText(this, "" + HttpUrl, Toast.LENGTH_SHORT).show();
         RequestQueue requestQueue;
@@ -800,6 +800,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         String hashStashlatitude = hashStash.getString("latitude");
                         String hashStashlongitude = hashStash.getString("longitude");
                         String hashStashduration = hashStash.getString("duration");
+                        String hashStashUserImage = hashStash.getString("image");
 
                         Double lat = Double.parseDouble(hashStash.getString("latitude"));
                         Double lan = Double.parseDouble(hashStash.getString("longitude"));
@@ -813,7 +814,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         markers.put(mark.getId(), "" + i);
                         mMap.moveCamera(CameraUpdateFactory.newLatLng(locations.get(i)));
 
-                        hashStashLists.add(new HashStashList(hashStashId, hashStashComments, hashStashcmtTime, hashStashlocation, hashStashlocationId, hashStashlatitude, hashStashlongitude, hashStashduration));
+                        hashStashLists.add(new HashStashList(hashStashId, hashStashComments, hashStashcmtTime, hashStashlocation, hashStashlocationId, hashStashlatitude, hashStashlongitude, hashStashduration,hashStashUserImage));
 
                     }
 
@@ -1126,7 +1127,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             final TextView popularHash = view.findViewById(R.id.popularHash);
 
 
-            image.setImageResource(R.drawable.demoman);
+          //  image.setImageResource(R.drawable.demoman);
+            String imageValues = hashStashLists.get(Integer.parseInt(url)).getHashStashUserImage();
+            String imageValue = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/" + imageValues;
+            Picasso.with(MapsActivity.this).load(imageValue).into(image);
             String markerInfo = marker.getId().substring(1);
 
             storeName.setText(hashStashLists.get(Integer.parseInt(url)).getHashStashlocation());

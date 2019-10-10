@@ -101,13 +101,16 @@
             android:layout_height="20dp"
             android:background="@drawable/button_favorite"
             android:checked="false"
+            android:visibility="visible"
             android:text=""
             android:textOff=""
             android:textOn="" />
 
         <ImageView
+            android:id="@+id/sandClock"
             android:layout_width="50dp"
             android:layout_height="40dp"
+            android:visibility="visible"
             android:background="@drawable/sand_clock_icon" />
 
 

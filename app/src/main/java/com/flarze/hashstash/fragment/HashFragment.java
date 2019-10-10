@@ -93,7 +93,12 @@ public class HashFragment extends Fragment {
         hashOrStash = bundle.getString("hashOrStash");
         votedHashList = bundle.getStringArrayList("votedHashes");
 
-        getActivity().setTitle("HashList");
+        if (hashOrStash.contains("hash")) {
+            getActivity().setTitle("HashList");
+        } else {
+            getActivity().setTitle("StashList");
+        }
+
 
         storeName = view.findViewById(R.id.storeName);
         recyclerView = (RecyclerView) view.findViewById(R.id.hash_recycler);
@@ -144,6 +149,7 @@ public class HashFragment extends Fragment {
                                 String hashStashduration = hashStash.getString("duration");
                                 String hashStashImage = hashStash.getString("hashImage");
                                 String hashStashUserImage = hashStash.getString("image");
+                                String hahsStashUserId = hashStash.getString("userId");
 
 
                                 storeNames = hashStashlocation;
@@ -159,20 +165,19 @@ public class HashFragment extends Fragment {
                                     if (hashStashId.equals(votedHashList.get(v))) {
                                         status = 1;
                                         break;
-                                    }
-                                    else
+                                    } else
                                         status = 0;
                                 }
 
-                                if (status==1)
-                                    hashLists.add(new Hash_List(hashStashUserImage, hashStashId, hashStashComments, date, time, 1,hashStashImage));
+                                if (status == 1)
+                                    hashLists.add(new Hash_List(hashStashUserImage, hashStashId, hashStashComments, date, time, 1, hashStashImage,hahsStashUserId));
                                 else
-                                    hashLists.add(new Hash_List(hashStashUserImage, hashStashId, hashStashComments, date, time, 0,hashStashImage));
+                                    hashLists.add(new Hash_List(hashStashUserImage, hashStashId, hashStashComments, date, time, 0, hashStashImage,hahsStashUserId));
 
 
                             }
                             storeName.setText(storeNames);
-                            adapter = new Hash_adapter(getContext(), hashLists, userId);
+                            adapter = new Hash_adapter(getContext(), hashLists, userId,hashOrStash);
                             recyclerView.setAdapter(adapter);
 
                         } catch (JSONException e) {
