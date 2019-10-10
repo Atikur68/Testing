@@ -9,6 +9,7 @@ import java.util.List;
 import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
 import retrofit2.Call;
+import retrofit2.http.DELETE;
 import retrofit2.http.GET;
 import retrofit2.http.Multipart;
 import retrofit2.http.POST;
@@ -46,6 +47,14 @@ public interface Api {
     @PUT("votes")
     Call<String> VoteForHash(
     );
+
+    @PUT("stashtohash/{stash_id}")
+    Call<String> StashToHash(@Path("stash_id") String stash_id);
+
+
+    @DELETE("stashes")
+    Call<String> DeleteStash(@Path("stash_id") String stash_id,
+                             @Path("user_id") String user_id);
 
     @GET("savehashorstash/{userid}/{comments}/{cmtTime}/{location}/{locationId}/{latitute}/{longitute}/{duration}/{hashOrStash}")
     Call<String> SaveHashOrStash(@Path("userid") String userid,

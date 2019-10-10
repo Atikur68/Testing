@@ -3,12 +3,10 @@ package com.flarze.hashstash.data;
 public class Hash_List {
 
     private int images, dates;
-    private String hashcomment, times,userId,date,friendsName;
+    private String hashcomment, times,userId,date,friendsName,hashStashlongitude,hashStashlatitude,profileImage,hashId,votedHashId,userIdHashStash,hashStashImage,stashImage,friendImage;
     boolean toggleCheck;
     private long cmtTime;
     private int voteCount,voteStatus;
-    private String profileImage,hashId,votedHashId,userIdHashStash;
-    private String hashStashImage,stashImage,friendImage;
     private long expiration;
 
     public Hash_List(String votedHashId) {
@@ -20,7 +18,7 @@ public class Hash_List {
         this.friendsName = friendsName;
     }
 
-    public Hash_List(String profileImage,String hashId, String hashcomment, String date, String time,int voteStatus,String hashStashImage,String userIdHashStash){
+    public Hash_List(String profileImage,String hashId, String hashcomment, String date, String time,int voteStatus,String hashStashImage,String userIdHashStash,String hashStashlatitude,String hashStashlongitude){
         this.profileImage = profileImage;
         this.hashcomment = hashcomment;
         this.date = date;
@@ -29,6 +27,8 @@ public class Hash_List {
         this.voteStatus=voteStatus;
         this.hashStashImage=hashStashImage;
         this.userIdHashStash=userIdHashStash;
+        this.hashStashlatitude=hashStashlatitude;
+        this.hashStashlongitude=hashStashlongitude;
     }
 
 
@@ -43,6 +43,14 @@ public class Hash_List {
         this.voteCount = voteCount;
         this.expiration = expiration;
 
+    }
+
+    public String getHashStashlongitude() {
+        return hashStashlongitude;
+    }
+
+    public String getHashStashlatitude() {
+        return hashStashlatitude;
     }
 
     public String getUserIdHashStash() {

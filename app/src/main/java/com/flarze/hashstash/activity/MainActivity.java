@@ -203,6 +203,7 @@ public class MainActivity extends AppCompatActivity
         } else if (id == R.id.nav_logout) {
             appPreferences.clear();
             startActivity(new Intent(this, SigninActivity.class));
+            finish();
         }
 
         if (fragment != null) {

@@ -14,15 +14,20 @@ import android.view.ViewGroup;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.DefaultRetryPolicy;
+import com.android.volley.NetworkResponse;
+import com.android.volley.ParseError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.VolleyError;
+import com.android.volley.VolleyLog;
+import com.android.volley.toolbox.HttpHeaderParser;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.flarze.hashstash.R;
@@ -38,12 +43,15 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.io.UnsupportedEncodingException;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import retrofit2.Call;
 import retrofit2.Callback;
+import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
@@ -55,7 +63,8 @@ public class Hash_adapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
     Context mcontext;
     List<Hash_List> hashList;
     View view;
-    String vote, userId, hashOrStash;
+    String vote, userId, hashOrStash,times,locationid,location,latitude,longitude;
+    Calendar calander;
 
     public Hash_adapter(Context context, List<Hash_List> hashLists, String userId, String hashOrStash) {
         this.mcontext = context;
@@ -99,17 +108,151 @@ public class Hash_adapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         return hashList == null ? 0 : hashList.size();
     }
 
+    public void removeItem(int position, String stashId) {
+        hashList.remove(position);
+        notifyItemRemoved(position);
+        DeleteStash(stashId,userId);
+    }
+
+    public void DeleteStash( String stashId,String userId) {
+
+        String HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/"+userId+"/hash-or-stash/"+stashId+"/stashes";
+        RequestQueue requestQueue;
+        requestQueue = Volley.newRequestQueue(mcontext);
+        StringRequest stringRequest = new StringRequest(Request.Method.DELETE, HttpUrl,
+                new com.android.volley.Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+
+                    }
+                },
+                new com.android.volley.Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError volleyError) {
+                        //  Toast.makeText(mcontext, "" + volleyError, Toast.LENGTH_SHORT).show();
+                    }
+                });
+        stringRequest.setRetryPolicy(new DefaultRetryPolicy(10 * 1000, 0, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+        // Creating RequestQueue.
+        requestQueue = Volley.newRequestQueue(mcontext);
+        // Adding the StringRequest object into requestQueue.
+        requestQueue.add(stringRequest);
+    }
+
+    public void restoreItem(Hash_List item, int position) {
+        hashList.add(position, item);
+        // notify item added by position
+        notifyItemInserted(position);
+    }
+
+    public void StashToHash(int position,String stashId,String locations,String latitudes,String longitudes,String comment) {
+        try {
+            calander = Calendar.getInstance();
+            times= String.valueOf(calander.getTimeInMillis() / 1000);
+            locationid="1234";
+
+            RequestQueue requestQueue = Volley.newRequestQueue(mcontext);
+            String HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/hash-or-stash/"+stashId;
+            JSONObject param = new JSONObject();
+
+            param.put("comments", comment);
+            param.put("cmtTime", times);
+            param.put("location", locations);
+            param.put("locationId", locationid);
+            param.put("latitude", latitudes);
+            param.put("longitude", longitudes);
+            param.put("duration", "120");
+            param.put("hashOrStash", "HASH");
+
+            final String requestBody = param.toString();
+
+            StringRequest stringRequest = new StringRequest(Request.Method.PUT, HttpUrl, new com.android.volley.Response.Listener<String>() {
+                @Override
+                public void onResponse(String response) {
+                    final JSONObject jsonObject;
+                    try {
+                        jsonObject = new JSONObject(response);
+
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+
+
+                }
+            }, new com.android.volley.Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    Toast.makeText(mcontext,error.getMessage(), Toast.LENGTH_LONG).show();
+                }
+            }) {
+                @Override
+                public String getBodyContentType() {
+                    return "application/json; charset=utf-8";
+                }
+
+                @Override
+                public byte[] getBody() throws AuthFailureError {
+                    try {
+                        return requestBody == null ? null : requestBody.getBytes("utf-8");
+                    } catch (UnsupportedEncodingException uee) {
+                        VolleyLog.wtf("Unsupported Encoding while trying to get the bytes of %s using %s", requestBody, "utf-8");
+                        return null;
+                    }
+                }
+
+                @Override
+                protected com.android.volley.Response<String> parseNetworkResponse(NetworkResponse response) {
+                    try {
+                        String jsonString = new String(response.data,
+                                HttpHeaderParser.parseCharset(response.headers));
+                        return com.android.volley.Response.success(jsonString,
+                                HttpHeaderParser.parseCacheHeaders(response));
+                    } catch (UnsupportedEncodingException e) {
+                        return com.android.volley.Response.error(new ParseError(e));
+                    }
+                }
+            };
+
+            requestQueue.add(stringRequest);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        removeItem(position,stashId);
+    }
+
+    private com.android.volley.Response.Listener<JSONObject> createRequestSuccessListener() {
+        com.android.volley.Response.Listener listener = new com.android.volley.Response.Listener() {
+            @Override
+            public void onResponse(Object response) {
+                Toast.makeText(mcontext, response.toString(), Toast.LENGTH_LONG).show();
+            }
+        };
+        return listener;
+    }
+    private com.android.volley.Response.ErrorListener createRequestErrorListener() {
+        com.android.volley.Response.ErrorListener err = new com.android.volley.Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Toast.makeText(mcontext, error.getMessage(), Toast.LENGTH_LONG).show();
+            }
+        };
+        return err;
+    }
+
     public class UserViewHolder extends RecyclerView.ViewHolder {
         CircularImageView circleImageView;
         TextView hashcomment, date, time;
         ToggleButton button_favorite;
         String userid, hashId;
         ImageView sandClock;
+        public RelativeLayout viewForeground, viewBackground;
 
 
         public UserViewHolder(View itemView) {
             super(itemView);
 
+            viewForeground = itemView.findViewById(R.id.forefround);
             circleImageView = itemView.findViewById(R.id.profile_image_hash_row);
             hashcomment = itemView.findViewById(R.id.txt_hash_comment);
             date = itemView.findViewById(R.id.txt_date);
@@ -274,6 +417,8 @@ public class Hash_adapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
 
             view.getContext().startActivity(Intent.createChooser(intent, view.getResources().getString(R.string.share_title)));
         }
+
+
 
 
     }

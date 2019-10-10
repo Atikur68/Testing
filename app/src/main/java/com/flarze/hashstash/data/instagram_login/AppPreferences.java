@@ -17,7 +17,6 @@ public class AppPreferences {
     public static final String TABLE_ID = "id";
     public static final String HASHORSTASH = "hashOrStash";
     public static final String LOCATION_ID = "locationId";
-    public static final String WELCOME_STATUS = "welcome_status";
     public static final String PERMISSIONS = "permission_status";
     public static final String HASHES = "hashes";
     public static final String STASHES = "stashes";

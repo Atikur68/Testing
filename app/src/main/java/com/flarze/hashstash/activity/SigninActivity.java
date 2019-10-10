@@ -122,6 +122,10 @@ public class SigninActivity extends AppCompatActivity implements AuthenticationL
 
     }
 
+    @Override
+    public void onBackPressed() {
+    }
+
     public void onClick(View view) {
         if (token != null) {
             getUserInfoByAccessToken(token);
