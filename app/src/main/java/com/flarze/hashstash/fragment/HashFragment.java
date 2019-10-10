@@ -106,10 +106,6 @@ public class HashFragment extends Fragment{
         hashOrStash = bundle.getString("hashOrStash");
         votedHashList = bundle.getStringArrayList("votedHashes");
         storeName = view.findViewById(R.id.storeName);
-        recyclerView = (RecyclerView) view.findViewById(R.id.hash_recycler);
-        recyclerView.setHasFixedSize(true);
-        recyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false));
-
 
         if (hashOrStash.contains("hash")) {
             getActivity().setTitle("HashList");
@@ -117,40 +113,14 @@ public class HashFragment extends Fragment{
             getActivity().setTitle("StashList");
         }
 
-//        AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
-//        recyclerView.setItemAnimator(new DefaultItemAnimator());
-//        recyclerView.addItemDecoration(new DividerItemDecoration(getContext(), DividerItemDecoration.VERTICAL));
+        recyclerView = (RecyclerView) view.findViewById(R.id.hash_recycler);
+        recyclerView.setHasFixedSize(true);
+        recyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false));
 
-//        ItemTouchHelper.SimpleCallback itemTouchHelperCallback = new RecyclerItemTouchHelper(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT, this);
-//        new ItemTouchHelper(itemTouchHelperCallback).attachToRecyclerView(recyclerView);
+
+
 
         getHashStashByLocation();
-
-//        ItemTouchHelper.SimpleCallback itemTouchHelperCallback1 = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
-//            @Override
-//            public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
-//                return false;
-//            }
-//
-//            @Override
-//            public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
-//                if (direction == ItemTouchHelper.LEFT){
-//                    adapter.StashToHash(hashStashId, hashStashlocation, hashLists.get(viewHolder.getAdapterPosition()).getHashStashlatitude(), hashLists.get(viewHolder.getAdapterPosition()).getHashStashlongitude(), hashLists.get(viewHolder.getAdapterPosition()).getHashcomment());
-//                }
-//                else{
-//                    adapter.removeItem(viewHolder.getAdapterPosition(),hashStashId);
-//                }
-//            }
-//
-//            @Override
-//            public void onChildDraw(Canvas c, RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
-//                super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
-//            }
-//        };
-//
-//        // attaching the touch helper to recycler view
-//        new ItemTouchHelper(itemTouchHelperCallback1).attachToRecyclerView(recyclerView);
-
 
         enableSwipe();
 
@@ -158,58 +128,63 @@ public class HashFragment extends Fragment{
     }
 
 
-    private void enableSwipe(){
-        ItemTouchHelper.SimpleCallback simpleItemTouchCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+    private void enableSwipe() {
 
-            @Override
-            public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
-                return false;
-            }
+        if (!hashOrStash.contains("hash")) {
 
-            @Override
-            public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
-                int position = viewHolder.getAdapterPosition();
 
-                if (direction == ItemTouchHelper.LEFT){
+            ItemTouchHelper.SimpleCallback simpleItemTouchCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
 
-                    adapter.StashToHash(viewHolder.getAdapterPosition(),hashLists.get(viewHolder.getAdapterPosition()).getHashId(), hashStashlocation, hashLists.get(viewHolder.getAdapterPosition()).getHashStashlatitude(), hashLists.get(viewHolder.getAdapterPosition()).getHashStashlongitude(), hashLists.get(viewHolder.getAdapterPosition()).getHashcomment());
-
-                } else {
-                    adapter.removeItem(viewHolder.getAdapterPosition(),hashLists.get(viewHolder.getAdapterPosition()).getHashId());
+                @Override
+                public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
+                    return false;
                 }
-            }
 
-            @Override
-            public void onChildDraw(Canvas c, RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
+                @Override
+                public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
+                    int position = viewHolder.getAdapterPosition();
 
-                Bitmap icon;
-                if(actionState == ItemTouchHelper.ACTION_STATE_SWIPE){
+                    if (direction == ItemTouchHelper.LEFT) {
 
-                    View itemView = viewHolder.itemView;
-                    float height = (float) itemView.getBottom() - (float) itemView.getTop();
-                    float width = height / 3;
+                        adapter.StashToHash(viewHolder.getAdapterPosition(), hashLists.get(viewHolder.getAdapterPosition()).getHashId(), hashStashlocation, hashLists.get(viewHolder.getAdapterPosition()).getHashStashlatitude(), hashLists.get(viewHolder.getAdapterPosition()).getHashStashlongitude(), hashLists.get(viewHolder.getAdapterPosition()).getHashcomment());
 
-                    if(dX > 0){
-                        p.setColor(Color.parseColor("#D32F2F"));
-                        RectF background = new RectF((float) itemView.getLeft(), (float) itemView.getTop(), dX,(float) itemView.getBottom());
-                        c.drawRect(background,p);
-                        icon = BitmapFactory.decodeResource(getResources(), R.drawable.share_iconn);
-                        RectF icon_dest = new RectF((float) itemView.getLeft() + width ,(float) itemView.getTop() + width,(float) itemView.getLeft()+ 2*width,(float)itemView.getBottom() - width);
-                        c.drawBitmap(icon,null,icon_dest,p);
                     } else {
-                        p.setColor(Color.parseColor("#388E3C"));
-                        RectF background = new RectF((float) itemView.getRight() + dX, (float) itemView.getTop(),(float) itemView.getRight(), (float) itemView.getBottom());
-                        c.drawRect(background,p);
-                        icon = BitmapFactory.decodeResource(getResources(), R.drawable.world_iconn);
-                        RectF icon_dest = new RectF((float) itemView.getRight() - 2*width ,(float) itemView.getTop() + width,(float) itemView.getRight() - width,(float)itemView.getBottom() - width);
-                        c.drawBitmap(icon,null,icon_dest,p);
+                        adapter.removeItem(viewHolder.getAdapterPosition(), hashLists.get(viewHolder.getAdapterPosition()).getHashId());
                     }
                 }
-                super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
-            }
-        };
-        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(simpleItemTouchCallback);
-        itemTouchHelper.attachToRecyclerView(recyclerView);
+
+                @Override
+                public void onChildDraw(Canvas c, RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
+
+                    Bitmap icon;
+                    if (actionState == ItemTouchHelper.ACTION_STATE_SWIPE) {
+
+                        View itemView = viewHolder.itemView;
+                        float height = (float) itemView.getBottom() - (float) itemView.getTop();
+                        float width = height / 3;
+
+                        if (dX > 0) {
+                            p.setColor(Color.parseColor("#D32F2F"));
+                            RectF background = new RectF((float) itemView.getLeft(), (float) itemView.getTop(), dX, (float) itemView.getBottom());
+                            c.drawRect(background, p);
+                            icon = BitmapFactory.decodeResource(getResources(), R.drawable.share_iconn);
+                            RectF icon_dest = new RectF((float) itemView.getLeft() + width, (float) itemView.getTop() + width, (float) itemView.getLeft() + 2 * width, (float) itemView.getBottom() - width);
+                            c.drawBitmap(icon, null, icon_dest, p);
+                        } else {
+                            p.setColor(Color.parseColor("#388E3C"));
+                            RectF background = new RectF((float) itemView.getRight() + dX, (float) itemView.getTop(), (float) itemView.getRight(), (float) itemView.getBottom());
+                            c.drawRect(background, p);
+                            icon = BitmapFactory.decodeResource(getResources(), R.drawable.world_iconn);
+                            RectF icon_dest = new RectF((float) itemView.getRight() - 2 * width, (float) itemView.getTop() + width, (float) itemView.getRight() - width, (float) itemView.getBottom() - width);
+                            c.drawBitmap(icon, null, icon_dest, p);
+                        }
+                    }
+                    super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
+                }
+            };
+            ItemTouchHelper itemTouchHelper = new ItemTouchHelper(simpleItemTouchCallback);
+            itemTouchHelper.attachToRecyclerView(recyclerView);
+        }
     }
 
     private void getHashStashByLocation() {
