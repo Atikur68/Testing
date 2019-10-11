@@ -175,7 +175,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private TextView userName, userCountry, userHashes, userStashes;
     private boolean status = true;
 
-    public Dialog dialog;
+    public Dialog dialog, dialogMessage;
     private LocationListAdapter locationListAdapter;
 
     private AppPreferences appPreferences = null;
@@ -630,8 +630,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                                 JSONObject obj = new JSONObject(response);
 
                                 JSONArray heroArray = obj.optJSONArray("results");
-                                //  locationLists.clear();
-                              //  locationLists.add(new LocationList(R.mipmap.ic_launcher, "Shikerpur", "22.8151625", "90.0611301", "123459"));
+                                locationLists.clear();
+                                locationLists.add(new LocationList(R.mipmap.ic_launcher, "Shikerpur", "22.8151625", "90.0611301", "123459"));
 
                                 for (int i = 0; i < heroArray.length(); i++) {
 
@@ -817,7 +817,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         markers.put(mark.getId(), "" + i);
                         mMap.moveCamera(CameraUpdateFactory.newLatLng(locations.get(i)));
 
-                        hashStashLists.add(new HashStashList(hashStashId, hashStashComments, hashStashcmtTime, hashStashlocation, hashStashlocationId, hashStashlatitude, hashStashlongitude, hashStashduration,hashStashUserImage));
+                        hashStashLists.add(new HashStashList(hashStashId, hashStashComments, hashStashcmtTime, hashStashlocation, hashStashlocationId, hashStashlatitude, hashStashlongitude, hashStashduration, hashStashUserImage));
 
                     }
 
@@ -889,13 +889,38 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     public void dialogDismiss(String hashStashId) {
         dialog.dismiss();
+
         String HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/hash-or-stash/" + hashStashId + "/";
         // String HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/" + appPreferences.getString(AppPreferences.TABLE_ID) + "/";
-        if (selectedImage != null)
+        if (selectedImage != null) {
             uploadFile(selectedImage, HttpUrl);
-        else
-            startActivity(new Intent(this, this.getClass()));
 
+        } else {
+            progressDialog = new ProgressDialog(MapsActivity.this);
+            progressDialog.setMessage("Your hash will last for 2 minutes"); // Setting Message
+            // progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER); // Progress Dialog Style Spinner
+            progressDialog.show(); // Display Progress Dialog
+
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        Thread.sleep(5000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            reloadActivity();
+
+                        }
+                    });
+                }
+            }).start();
+
+
+        }
     }
 
     private void uploadFile(Uri fileUri, String HttpUrl) {
@@ -949,8 +974,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         });
 
         progressDialog = new ProgressDialog(MapsActivity.this);
-        progressDialog.setMessage("Loading..."); // Setting Message
-        progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER); // Progress Dialog Style Spinner
+        progressDialog.setMessage("Your hash will last for 2 minutes"); // Setting Message
+        // progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER); // Progress Dialog Style Spinner
         progressDialog.show(); // Display Progress Dialog
 
         new Thread(new Runnable() {
@@ -1130,7 +1155,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             final TextView popularHash = view.findViewById(R.id.popularHash);
 
 
-          //  image.setImageResource(R.drawable.demoman);
+            //  image.setImageResource(R.drawable.demoman);
             String imageValues = hashStashLists.get(Integer.parseInt(url)).getHashStashUserImage();
             String imageValue = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/" + imageValues;
             Picasso.with(MapsActivity.this).load(imageValue).into(image);

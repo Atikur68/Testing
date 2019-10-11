@@ -69,11 +69,8 @@ public class LocationListAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
         private ImageView locationImage;
         private TextView locationName;
-        String comment, time, date, location, locationid, latitude, longitude, hashorstash, userId,selector="HASH",hashStashId="";
+        String comment, time, date, location, locationid, latitude, longitude, hashorstash, userId, selector = "HASH", hashStashId = "";
         private ProgressDialog progressDialog;
-
-
-
 
 
         public TeamViewHolder(View itemView) {
@@ -86,15 +83,15 @@ public class LocationListAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                 @Override
                 public void onClick(View v) {
                     LocationList locationList = locationLists.get(getLayoutPosition());
-                    hashorstash=((MapsActivity)context).hashOrStash;
+                    hashorstash = ((MapsActivity) context).hashOrStash;
 
 
                     if (hashorstash.contains("hash")) {
                         comment = ((MapsActivity) context).edt_hash_comment_str;
-                        selector="HASH";
+                        selector = "HASH";
                     } else {
-                         comment=((MapsActivity)context).edt_shash_comment_str;
-                        selector="STASH";
+                        comment = ((MapsActivity) context).edt_shash_comment_str;
+                        selector = "STASH";
                     }
 
                     try {
@@ -107,14 +104,14 @@ public class LocationListAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 //                        userId = "1";
 
 
-                       // hashorstash=((MapsActivity)context).hashOrStash;
-                       // time=((MapsActivity)context).Time;
-                        time=((MapsActivity)context).getTime();
-                        location=locationList.getLocatonName();
-                        locationid=locationList.getLocationId();
-                        longitude=locationList.getLocatonLon();
-                        latitude=locationList.getLocatonLat();
-                        userId=((MapsActivity)context).userId;
+                        // hashorstash=((MapsActivity)context).hashOrStash;
+                        // time=((MapsActivity)context).Time;
+                        time = ((MapsActivity) context).getTime();
+                        location = locationList.getLocatonName();
+                        locationid = locationList.getLocationId();
+                        longitude = locationList.getLocatonLon();
+                        latitude = locationList.getLocatonLat();
+                        userId = ((MapsActivity) context).userId;
 
                         RequestQueue requestQueue = Volley.newRequestQueue(context);
                         String URL = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/" + userId + "/hashorstash";
@@ -138,9 +135,9 @@ public class LocationListAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                                 final JSONObject jsonObject;
                                 try {
                                     jsonObject = new JSONObject(response);
-                                     hashStashId = jsonObject.getString("id");
-                                    Toast.makeText(context,hashStashId, Toast.LENGTH_LONG).show();
-                                    ((MapsActivity)context).dialogDismiss(hashStashId);
+                                    hashStashId = jsonObject.getString("id");
+                                    Toast.makeText(context, hashStashId, Toast.LENGTH_LONG).show();
+                                    ((MapsActivity) context).dialogDismiss(hashStashId);
                                 } catch (JSONException e) {
                                     e.printStackTrace();
                                 }
@@ -150,7 +147,7 @@ public class LocationListAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                         }, new Response.ErrorListener() {
                             @Override
                             public void onErrorResponse(VolleyError error) {
-                                Toast.makeText(context,error.getMessage(), Toast.LENGTH_LONG).show();
+                                Toast.makeText(context, error.getMessage(), Toast.LENGTH_LONG).show();
                             }
                         }) {
                             @Override
@@ -190,18 +187,7 @@ public class LocationListAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             });
 
 
-
-       // saveHashStashImage(hashStashId);
-
         }
-
-        private void saveHashStashImage(String hashStashId) {
-
-            String HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/hash-or-stash/"+hashStashId+"/";
-           // uploadFile(selectedImage,HttpUrl);
-
-        }
-
 
 
         private Response.Listener<JSONObject> createRequestSuccessListener() {
@@ -213,6 +199,7 @@ public class LocationListAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             };
             return listener;
         }
+
         private Response.ErrorListener createRequestErrorListener() {
             Response.ErrorListener err = new Response.ErrorListener() {
                 @Override
