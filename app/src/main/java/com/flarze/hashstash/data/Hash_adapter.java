@@ -33,6 +33,7 @@ import com.android.volley.toolbox.Volley;
 import com.flarze.hashstash.R;
 import com.flarze.hashstash.activity.MapsActivity;
 import com.flarze.hashstash.activity.UserProfileActivity;
+import com.flarze.hashstash.fragment.HashFragment;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.mikhaellopez.circularimageview.CircularImageView;
@@ -63,7 +64,7 @@ public class Hash_adapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
     Context mcontext;
     List<Hash_List> hashList;
     View view;
-    String vote, userId, hashOrStash,times,locationid,location,latitude,longitude;
+    String vote, userId, hashOrStash, times, locationid, location, latitude, longitude;
     Calendar calander;
 
     public Hash_adapter(Context context, List<Hash_List> hashLists, String userId, String hashOrStash) {
@@ -108,15 +109,26 @@ public class Hash_adapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         return hashList == null ? 0 : hashList.size();
     }
 
-    public void removeItem(int position, String stashId) {
-        hashList.remove(position);
-        notifyItemRemoved(position);
-        DeleteStash(stashId,userId);
+    public int removeItem(int position, String stashId, String userHashStashId) {
+
+        int tester = 0;
+
+        if (userHashStashId.equals(userId)) {
+            tester = 1;
+            hashList.remove(position);
+            notifyItemRemoved(position);
+            DeleteStash(stashId, userId, userHashStashId);
+
+        } else {
+            tester = 0;
+            Toast.makeText(mcontext, "You can delete only your own hash", Toast.LENGTH_LONG).show();
+        }
+        return tester;
     }
 
-    public void DeleteStash( String stashId,String userId) {
+    public void DeleteStash(String stashId, String userId, String userHashStashId) {
 
-        String HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/"+userId+"/hash-or-stash/"+stashId+"/stashes";
+        String HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/" + userId + "/hash-or-stash/" + stashId + "/stashes";
         RequestQueue requestQueue;
         requestQueue = Volley.newRequestQueue(mcontext);
         StringRequest stringRequest = new StringRequest(Request.Method.DELETE, HttpUrl,
@@ -145,14 +157,16 @@ public class Hash_adapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         notifyItemInserted(position);
     }
 
-    public void StashToHash(int position,String stashId,String locations,String latitudes,String longitudes,String comment) {
+    public void StashToHash(int position, String stashId, String locations, String latitudes, String longitudes, String comment, String userHashStashId) {
         try {
+
+
             calander = Calendar.getInstance();
-            times= String.valueOf(calander.getTimeInMillis() / 1000);
-            locationid="1234";
+            times = String.valueOf(calander.getTimeInMillis() / 1000);
+            locationid = "1234";
 
             RequestQueue requestQueue = Volley.newRequestQueue(mcontext);
-            String HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/hash-or-stash/"+stashId;
+            String HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/hash-or-stash/" + stashId;
             JSONObject param = new JSONObject();
 
             param.put("comments", comment);
@@ -182,7 +196,7 @@ public class Hash_adapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
             }, new com.android.volley.Response.ErrorListener() {
                 @Override
                 public void onErrorResponse(VolleyError error) {
-                    Toast.makeText(mcontext,error.getMessage(), Toast.LENGTH_LONG).show();
+                    Toast.makeText(mcontext, error.getMessage(), Toast.LENGTH_LONG).show();
                 }
             }) {
                 @Override
@@ -218,7 +232,10 @@ public class Hash_adapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
             e.printStackTrace();
         }
 
-        removeItem(position,stashId);
+        //  removeItem(position,stashId);
+
+        hashList.remove(position);
+        notifyItemRemoved(position);
     }
 
     private com.android.volley.Response.Listener<JSONObject> createRequestSuccessListener() {
@@ -230,6 +247,7 @@ public class Hash_adapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         };
         return listener;
     }
+
     private com.android.volley.Response.ErrorListener createRequestErrorListener() {
         com.android.volley.Response.ErrorListener err = new com.android.volley.Response.ErrorListener() {
             @Override
@@ -417,8 +435,6 @@ public class Hash_adapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
 
             view.getContext().startActivity(Intent.createChooser(intent, view.getResources().getString(R.string.share_title)));
         }
-
-
 
 
     }

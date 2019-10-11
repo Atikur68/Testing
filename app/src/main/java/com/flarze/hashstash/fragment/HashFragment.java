@@ -11,6 +11,7 @@ import android.graphics.RectF;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatDelegate;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.DividerItemDecoration;
@@ -54,19 +55,20 @@ import java.util.List;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class HashFragment extends Fragment{
+public class HashFragment extends Fragment implements SwipeRefreshLayout.OnRefreshListener {
 
     private RecyclerView recyclerView;
     private Hash_adapter adapter;
     private List<Hash_List> hashLists = new ArrayList<>();
     private List<String> votedHashList = new ArrayList<>();
     View view;
-    private String locationLatitude = "", locationLongitude = "", hashOrStash = "", userId = "", storeNames = "",hashStashId="",hashStashlocation="";
+    private String locationLatitude = "", locationLongitude = "", hashOrStash = "", userId = "", storeNames = "", hashStashId = "", hashStashlocation = "";
     private TextView storeName;
     private AppPreferences appPreferences = null;
     public MapsActivity mapsActivity;
     public SimpleDateFormat simpledateformat, simpleTimeformate;
     private Paint p = new Paint();
+    private SwipeRefreshLayout swipeRefreshLayout;
 
     public HashFragment() {
         // Required empty public constructor
@@ -106,6 +108,9 @@ public class HashFragment extends Fragment{
         hashOrStash = bundle.getString("hashOrStash");
         votedHashList = bundle.getStringArrayList("votedHashes");
         storeName = view.findViewById(R.id.storeName);
+        swipeRefreshLayout = (SwipeRefreshLayout) view.findViewById(R.id.swiperefresh);
+        swipeRefreshLayout.setOnRefreshListener(this);
+
 
         if (hashOrStash.contains("hash")) {
             getActivity().setTitle("HashList");
@@ -117,7 +122,14 @@ public class HashFragment extends Fragment{
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false));
 
-
+        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                // cancel the Visual indication of a refresh
+                swipeRefreshLayout.setRefreshing(false);
+                getHashStashByLocation();
+            }
+        });
 
 
         getHashStashByLocation();
@@ -130,9 +142,53 @@ public class HashFragment extends Fragment{
 
     private void enableSwipe() {
 
-        if (!hashOrStash.contains("hash")) {
+        if (hashOrStash.contains("hash")) {
+
+            ItemTouchHelper.SimpleCallback simpleItemTouchCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
+
+                @Override
+                public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
+                    return false;
+                }
+
+                @Override
+                public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
+                    int position = viewHolder.getAdapterPosition();
+
+                    if (direction == ItemTouchHelper.LEFT) {
+                        int test =adapter.removeItem(viewHolder.getAdapterPosition(), hashLists.get(viewHolder.getAdapterPosition()).getHashId(),hashLists.get(viewHolder.getAdapterPosition()).getUserIdHashStash());
+                        if(test==0){
+                            getHashStashByLocation();
+                        }
+
+                    }
+                }
+
+                @Override
+                public void onChildDraw(Canvas c, RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
+
+                    Bitmap icon;
+                    if (actionState == ItemTouchHelper.ACTION_STATE_SWIPE) {
+
+                        View itemView = viewHolder.itemView;
+                        float height = (float) itemView.getBottom() - (float) itemView.getTop();
+                        float width = height / 3;
 
 
+                        p.setColor(Color.parseColor("#D32F2F"));
+                        RectF background = new RectF((float) itemView.getRight() + dX, (float) itemView.getTop(), (float) itemView.getRight(), (float) itemView.getBottom());
+                        c.drawRect(background, p);
+                        icon = BitmapFactory.decodeResource(getResources(), R.drawable.share_iconn);
+                        RectF icon_dest = new RectF((float) itemView.getRight() - 2 * width, (float) itemView.getTop() + width, (float) itemView.getRight() - width, (float) itemView.getBottom() - width);
+                        c.drawBitmap(icon, null, icon_dest, p);
+
+                    }
+                    super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
+                }
+            };
+            ItemTouchHelper itemTouchHelper = new ItemTouchHelper(simpleItemTouchCallback);
+            itemTouchHelper.attachToRecyclerView(recyclerView);
+        } else {
             ItemTouchHelper.SimpleCallback simpleItemTouchCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
 
                 @Override
@@ -145,11 +201,11 @@ public class HashFragment extends Fragment{
                     int position = viewHolder.getAdapterPosition();
 
                     if (direction == ItemTouchHelper.LEFT) {
-
-                        adapter.StashToHash(viewHolder.getAdapterPosition(), hashLists.get(viewHolder.getAdapterPosition()).getHashId(), hashStashlocation, hashLists.get(viewHolder.getAdapterPosition()).getHashStashlatitude(), hashLists.get(viewHolder.getAdapterPosition()).getHashStashlongitude(), hashLists.get(viewHolder.getAdapterPosition()).getHashcomment());
+                        adapter.removeItem(viewHolder.getAdapterPosition(), hashLists.get(viewHolder.getAdapterPosition()).getHashId(),hashLists.get(viewHolder.getAdapterPosition()).getUserIdHashStash());
 
                     } else {
-                        adapter.removeItem(viewHolder.getAdapterPosition(), hashLists.get(viewHolder.getAdapterPosition()).getHashId());
+                        adapter.StashToHash(viewHolder.getAdapterPosition(), hashLists.get(viewHolder.getAdapterPosition()).getHashId(), hashStashlocation, hashLists.get(viewHolder.getAdapterPosition()).getHashStashlatitude(), hashLists.get(viewHolder.getAdapterPosition()).getHashStashlongitude(), hashLists.get(viewHolder.getAdapterPosition()).getHashcomment(),hashLists.get(viewHolder.getAdapterPosition()).getUserIdHashStash());
+
                     }
                 }
 
@@ -164,17 +220,19 @@ public class HashFragment extends Fragment{
                         float width = height / 3;
 
                         if (dX > 0) {
-                            p.setColor(Color.parseColor("#D32F2F"));
+                            p.setColor(Color.parseColor("#388E3C"));
                             RectF background = new RectF((float) itemView.getLeft(), (float) itemView.getTop(), dX, (float) itemView.getBottom());
                             c.drawRect(background, p);
-                            icon = BitmapFactory.decodeResource(getResources(), R.drawable.share_iconn);
+                            icon = BitmapFactory.decodeResource(getResources(), R.drawable.world_iconn);
                             RectF icon_dest = new RectF((float) itemView.getLeft() + width, (float) itemView.getTop() + width, (float) itemView.getLeft() + 2 * width, (float) itemView.getBottom() - width);
                             c.drawBitmap(icon, null, icon_dest, p);
                         } else {
-                            p.setColor(Color.parseColor("#388E3C"));
+
+
+                            p.setColor(Color.parseColor("#D32F2F"));
                             RectF background = new RectF((float) itemView.getRight() + dX, (float) itemView.getTop(), (float) itemView.getRight(), (float) itemView.getBottom());
                             c.drawRect(background, p);
-                            icon = BitmapFactory.decodeResource(getResources(), R.drawable.world_iconn);
+                            icon = BitmapFactory.decodeResource(getResources(), R.drawable.share_iconn);
                             RectF icon_dest = new RectF((float) itemView.getRight() - 2 * width, (float) itemView.getTop() + width, (float) itemView.getRight() - width, (float) itemView.getBottom() - width);
                             c.drawBitmap(icon, null, icon_dest, p);
                         }
@@ -187,7 +245,7 @@ public class HashFragment extends Fragment{
         }
     }
 
-    private void getHashStashByLocation() {
+    public void getHashStashByLocation() {
         String HttpUrl = "";
         if (hashOrStash.contains("hash")) {
             HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/hash-or-stash/hashes/locations/" + locationLatitude + "/" + locationLongitude;
@@ -214,10 +272,10 @@ public class HashFragment extends Fragment{
                                 int status = 0;
 
                                 JSONObject hashStash = response.getJSONObject(i);
-                                 hashStashId = hashStash.getString("id");
+                                hashStashId = hashStash.getString("id");
                                 String hashStashComments = hashStash.getString("comments");
                                 String hashStashcmtTime = hashStash.getString("cmtTime");
-                                 hashStashlocation = hashStash.getString("location");
+                                hashStashlocation = hashStash.getString("location");
                                 String hashStashlocationId = hashStash.getString("locationId");
                                 String hashStashlatitude = hashStash.getString("latitude");
                                 String hashStashlongitude = hashStash.getString("longitude");
@@ -245,14 +303,14 @@ public class HashFragment extends Fragment{
                                 }
 
                                 if (status == 1)
-                                    hashLists.add(new Hash_List(hashStashUserImage, hashStashId, hashStashComments, date, time, 1, hashStashImage,hahsStashUserId,hashStashlatitude,hashStashlongitude));
+                                    hashLists.add(new Hash_List(hashStashUserImage, hashStashId, hashStashComments, date, time, 1, hashStashImage, hahsStashUserId, hashStashlatitude, hashStashlongitude));
                                 else
-                                    hashLists.add(new Hash_List(hashStashUserImage, hashStashId, hashStashComments, date, time, 0, hashStashImage,hahsStashUserId,hashStashlatitude,hashStashlongitude));
+                                    hashLists.add(new Hash_List(hashStashUserImage, hashStashId, hashStashComments, date, time, 0, hashStashImage, hahsStashUserId, hashStashlatitude, hashStashlongitude));
 
 
                             }
                             storeName.setText(storeNames);
-                            adapter = new Hash_adapter(getContext(), hashLists, userId,hashOrStash);
+                            adapter = new Hash_adapter(getContext(), hashLists, userId, hashOrStash);
                             recyclerView.setAdapter(adapter);
 
                         } catch (JSONException e) {
@@ -277,5 +335,8 @@ public class HashFragment extends Fragment{
     }
 
 
-
+    @Override
+    public void onRefresh() {
+        getHashStashByLocation();
+    }
 }

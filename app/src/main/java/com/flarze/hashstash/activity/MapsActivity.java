@@ -29,6 +29,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -772,7 +773,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private void getHashorStashWithinKm() {
 
-        String HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/" + userId + "/hash-or-stash/" + switchHashStash + "/coordinates/" + latitude + "/" + longitude + "/1200.0";
+        String HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/" + userId + "/hash-or-stash/" + switchHashStash + "/coordinates/" + latitude + "/" + longitude + "/2.0";
         // String HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/5/hash-or-stash/hash/coordinates/22.84564/89.540329/2.0";
         // Toast.makeText(this, "" + HttpUrl, Toast.LENGTH_SHORT).show();
         RequestQueue requestQueue;
