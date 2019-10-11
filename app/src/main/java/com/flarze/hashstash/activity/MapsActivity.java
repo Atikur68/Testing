@@ -409,6 +409,20 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             public void onClick(View v) {
 
                 friendListRecycler();
+                friendListRecycler();
+
+                if (status == true) {
+
+                    friendlist_layout_maps.setVisibility(View.VISIBLE);
+                    friendlist_layout_maps.startAnimation(leftToRight);
+                    status = false;
+
+                    // getUserImageFromPopular();
+                } else {
+                    friendlist_layout_maps.startAnimation(rightToLeft);
+                    status = true;
+                    friendlist_layout_maps.setVisibility(View.GONE);
+                }
 
             }
         });
@@ -512,8 +526,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void friendListRecycler() {
-        recyclerView.setHasFixedSize(true);
-        recyclerView.setLayoutManager(new LinearLayoutManager(MapsActivity.this, LinearLayoutManager.HORIZONTAL, false));
 
         for (int j = 0; j < popularUserId.size(); j++) {
 
@@ -535,6 +547,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                                 friendLists.add(new Hash_List(popularUsersImage, popularUsersName));
 
                                 // Toast.makeText(MapsActivity.this, ""+popularUsersImage+"  ..."+popularUsersName, Toast.LENGTH_SHORT).show();
+                                adapter = new FriendList_adapter(getApplicationContext(), friendLists);
+                                recyclerView.setAdapter(adapter);
 
 
                             } catch (JSONException e) {
@@ -560,25 +574,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             // }
         }
 
-        String imageValues = appPreferences.getString(AppPreferences.PROFILE_PIC);
-
-        //  friendLists.add(new Hash_List(imageValues, "Atik"));
-        adapter = new FriendList_adapter(this, friendLists);
-        recyclerView.setAdapter(adapter);
 
         //  friendLists.add(new Hash_List(R.drawable.newfriend_icon, "New"));
-        if (status == true) {
 
-            friendlist_layout_maps.setVisibility(View.VISIBLE);
-            friendlist_layout_maps.startAnimation(leftToRight);
-            status = false;
-
-            // getUserImageFromPopular();
-        } else {
-            friendlist_layout_maps.startAnimation(rightToLeft);
-            status = true;
-            friendlist_layout_maps.setVisibility(View.GONE);
-        }
 
     }
 
@@ -604,6 +602,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         stashEmojibtn = findViewById(R.id.stashEmojibtn);
         hashEmojibtn = findViewById(R.id.hashEmojibtn);
         view = findViewById(R.id.root_content);
+
+        recyclerView.setHasFixedSize(true);
+        recyclerView.setLayoutManager(new LinearLayoutManager(MapsActivity.this, LinearLayoutManager.HORIZONTAL, false));
 
     }
 
