@@ -631,7 +631,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                                 JSONArray heroArray = obj.optJSONArray("results");
                                 //  locationLists.clear();
-                                locationLists.add(new LocationList(R.mipmap.ic_launcher, "Shikerpur", "22.8151625", "90.0611301", "123459"));
+                              //  locationLists.add(new LocationList(R.mipmap.ic_launcher, "Shikerpur", "22.8151625", "90.0611301", "123459"));
 
                                 for (int i = 0; i < heroArray.length(); i++) {
 
@@ -1418,8 +1418,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     public void getUserFromPopular() {
-        //  String HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/hash-or-stash/locations/" + latitude + "/" + longitude + "/populars";
-        String HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/hash-or-stash/locations/22.8151625/90.0611301/populars";
+        String HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/hash-or-stash/locations/" + latitude + "/" + longitude + "/populars";
         // Toast.makeText(this, "" + HttpUrl, Toast.LENGTH_SHORT).show();
         RequestQueue requestQueue;
         requestQueue = Volley.newRequestQueue(MapsActivity.this);
