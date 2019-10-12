@@ -203,7 +203,7 @@ public class VerifyPhoneActivity extends AppCompatActivity {
     //you can take the country id as user input as well
     private void sendVerificationCode(String mobile) {
         PhoneAuthProvider.getInstance().verifyPhoneNumber(
-                "+88" + mobile,
+                "+1" + mobile,
                 60,
                 TimeUnit.SECONDS,
                 TaskExecutors.MAIN_THREAD,
