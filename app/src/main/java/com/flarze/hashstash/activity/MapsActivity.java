@@ -104,6 +104,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -221,8 +222,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     public String getTime() {
-        calander = Calendar.getInstance();
-        return String.valueOf(calander.getTimeInMillis() / 1000);
+        return String.valueOf(System.currentTimeMillis() / 1000);
     }
 
 
