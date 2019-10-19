@@ -137,7 +137,7 @@ public class LocationListAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                                     jsonObject = new JSONObject(response);
                                     hashStashId = jsonObject.getString("id");
                                     Toast.makeText(context, hashStashId, Toast.LENGTH_LONG).show();
-                                    ((MapsActivity) context).dialogDismiss(hashStashId);
+                                    ((MapsActivity) context).dialogDismiss(hashStashId, selector);
                                 } catch (JSONException e) {
                                     e.printStackTrace();
                                 }

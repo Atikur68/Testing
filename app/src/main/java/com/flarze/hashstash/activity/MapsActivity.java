@@ -887,19 +887,21 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
 
-    public void dialogDismiss(String hashStashId) {
+    public void dialogDismiss(String hashStashId, String selector) {
         dialog.dismiss();
 
         String HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/hash-or-stash/" + hashStashId + "/";
         // String HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/" + appPreferences.getString(AppPreferences.TABLE_ID) + "/";
         if (selectedImage != null) {
-            uploadFile(selectedImage, HttpUrl);
+            uploadFile(selectedImage, HttpUrl, selector);
 
         } else {
             progressDialog = new ProgressDialog(MapsActivity.this);
-            progressDialog.setMessage("Your hash will last for 2 minutes"); // Setting Message
-            // progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER); // Progress Dialog Style Spinner
-            progressDialog.show(); // Display Progress Dialog
+            if (selector.contentEquals("HASH")) {
+                progressDialog.setMessage("Your hash will last for 2 minutes"); // Setting Message
+                // progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER); // Progress Dialog Style Spinner
+                progressDialog.show(); // Display Progress Dialog
+            }
 
             new Thread(new Runnable() {
                 @Override
@@ -923,7 +925,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-    private void uploadFile(Uri fileUri, String HttpUrl) {
+    private void uploadFile(Uri fileUri, String HttpUrl, String selector) {
         final String[] successMessage = {""};
         // create upload service client
         // https://github.com/iPaulPro/aFileChooser/blob/master/aFileChooser/src/com/ipaulpro/afilechooser/utils/FileUtils.java
@@ -973,10 +975,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         });
 
-        progressDialog = new ProgressDialog(MapsActivity.this);
-        progressDialog.setMessage("Your hash will last for 2 minutes"); // Setting Message
-        // progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER); // Progress Dialog Style Spinner
-        progressDialog.show(); // Display Progress Dialog
+
+        if (selector.contentEquals("HASH")) {
+            progressDialog = new ProgressDialog(MapsActivity.this);
+            progressDialog.setMessage("Your hash will last for 2 minutes"); // Setting Message
+            // progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER); // Progress Dialog Style Spinner
+            progressDialog.show(); // Display Progress Dialog
+        }
 
         new Thread(new Runnable() {
             @Override

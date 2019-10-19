@@ -224,6 +224,7 @@
             android:layout_marginBottom="49dp"
             android:gravity="center_horizontal"
             android:orientation="horizontal"
+            android:visibility="gone"
             android:weightSum="2">
 
             <LinearLayout
