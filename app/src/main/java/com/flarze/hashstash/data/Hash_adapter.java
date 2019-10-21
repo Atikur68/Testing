@@ -5,12 +5,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
-import android.support.v7.app.AppCompatDelegate;
-import android.support.v7.widget.RecyclerView;
-import android.util.Log;
+import androidx.appcompat.app.AppCompatDelegate;
+import androidx.recyclerview.widget.RecyclerView;
+
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AnimationUtils;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -31,30 +32,16 @@ import com.android.volley.toolbox.HttpHeaderParser;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.flarze.hashstash.R;
-import com.flarze.hashstash.activity.MapsActivity;
-import com.flarze.hashstash.activity.UserProfileActivity;
-import com.flarze.hashstash.fragment.HashFragment;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.mikhaellopez.circularimageview.CircularImageView;
 import com.squareup.picasso.Picasso;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.util.Calendar;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
 
 import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
@@ -87,10 +74,14 @@ public class Hash_adapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
 
-        if (hashList.get(position).getVoteStatus() == 1)
+        if (hashList.get(position).getVoteStatus() == 1) {
             ((UserViewHolder) holder).button_favorite.setChecked(true);
+            //do not shake the hour glass
+        }
         else {
             ((UserViewHolder) holder).button_favorite.setChecked(false);
+            //shake the hour glass to indicate time is running out
+            ((UserViewHolder) holder).sandClock.startAnimation(AnimationUtils.loadAnimation(mcontext, R.anim.shake));
         }
 
         // Glide.with(mcontext).load(mcontext.getString(R.string.server_base_url_images) + hashList.get(position).getProfileImage()).into(((UserViewHolder) holder).circleImageView);
@@ -278,6 +269,7 @@ public class Hash_adapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
             userid = userId;
             button_favorite = itemView.findViewById(R.id.button_favorite);
             sandClock = itemView.findViewById(R.id.sandClock);
+
 
             if (hashOrStash.contains("hash")) {
                 button_favorite.setVisibility(VISIBLE);
