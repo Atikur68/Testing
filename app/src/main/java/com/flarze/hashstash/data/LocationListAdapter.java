@@ -3,8 +3,8 @@ package com.flarze.hashstash.data;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.net.Uri;
-import android.support.annotation.NonNull;
-import android.support.v7.widget.RecyclerView;
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -118,7 +118,11 @@ public class LocationListAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                         //String URL = "http://192.168.0.10:8084/hashorstash/users/" + userId + "/hashorstash";
                         JSONObject param = new JSONObject();
 
-                        param.put("comments", comment);
+                        if (!comment.contains("#")){
+                            param.put("comments", "#"+comment);
+                        }else {
+                            param.put("comments", comment);
+                        }
                         param.put("cmtTime", time);
                         param.put("location", location);
                         param.put("locationId", locationid);
