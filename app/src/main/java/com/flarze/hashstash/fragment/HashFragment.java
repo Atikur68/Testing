@@ -237,7 +237,7 @@ public class HashFragment extends Fragment implements SwipeRefreshLayout.OnRefre
     public void getHashStashByLocation() {
         String HttpUrl = "";
         if (hashOrStash.contains("hash")) {
-            HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/hash-or-stash/hashes/locations/" + locationLatitude + "/" + locationLongitude;
+            HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/" + userId+ "/hash-or-stash/hash/locations/" + locationLatitude + "/" + locationLongitude;
         } else {
             HttpUrl = "http://139.59.74.201:8080/hashorstash-0.0.1-SNAPSHOT/users/" + userId + "/hash-or-stash/stashes/locations/" + locationLatitude + "/" + locationLongitude;
         }
