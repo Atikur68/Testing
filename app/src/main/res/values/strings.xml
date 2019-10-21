@@ -36,7 +36,7 @@
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
-    <string name="store_name">Krispy Kreme</string>
+    <string name="store_name"></string>
     <string name="title_activity_maps">Map</string>
 
 
