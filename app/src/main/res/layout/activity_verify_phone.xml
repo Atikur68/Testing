@@ -7,7 +7,7 @@
     android:background="@drawable/signing_background_new"
     tools:context=".activity.VerifyPhoneActivity">
 
-    <android.support.v7.widget.Toolbar
+    <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolBarPhoneVerify"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

@@ -49,13 +49,12 @@
                     android:id="@+id/popularHash"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:gravity="center"
-                    android:textSize="14dp"
-                    android:textColor="@color/appsColor"
-                    android:text="Hash or Stash"
                     android:ellipsize="end"
+                    android:gravity="center"
                     android:maxLines="1"
-                    />
+                    android:text="Hash or Stash"
+                    android:textColor="@color/appsColor"
+                    android:textSize="14dp" />
 
             </LinearLayout>
 

@@ -3,7 +3,6 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginTop="5dp"
     android:orientation="vertical">
 
 
@@ -12,14 +11,16 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/forefround"
-        android:background="#e0e0e0"
+        android:background="@color/white"
         >
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="80dp"
             android:layout_marginTop="5dp"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            style="?android:buttonBarStyle"
+            android:dividerPadding="15dp">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -122,10 +123,10 @@
 
         <ImageView
             android:id="@+id/sandClock"
-            android:layout_width="50dp"
-            android:layout_height="40dp"
-            android:visibility="visible"
-            android:background="@drawable/sand_clock_icon" />
+            android:layout_width="25dp"
+            android:layout_height="25dp"
+            android:background="@drawable/sand_clock_icon2"
+            android:visibility="visible" />
 
 
     </LinearLayout>

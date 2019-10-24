@@ -8,12 +8,12 @@
 
     <include layout="@layout/maplayout" />
 
-    <android.support.design.widget.AppBarLayout
+    <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/white">
 
-        <android.support.v7.widget.Toolbar
+        <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar_maps"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
@@ -28,8 +28,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:gravity="left|center"
-                android:text="Click to Hash"
-                android:textSize="18dp" />
+                android:text="Click to share your temporary experience"
+                android:textSize="14dp" />
 
 
             <LinearLayout
@@ -62,11 +62,12 @@
 
             <hani.momanii.supernova_emoji_library.Helper.EmojiconEditText
                 android:id="@+id/edt_hash_comment"
-                android:layout_width="150dp"
+                android:layout_width="160dp"
                 android:layout_height="match_parent"
                 android:backgroundTint="@color/white"
-                android:hint="Write Hashtag..."
+                android:hint="Write hashtag message..."
                 android:inputType="textLongMessage"
+                android:textSize="14dp"
                 android:visibility="gone" />
 
             <LinearLayout
@@ -91,9 +92,9 @@
             </LinearLayout>
 
 
-        </android.support.v7.widget.Toolbar>
+        </androidx.appcompat.widget.Toolbar>
 
-    </android.support.design.widget.AppBarLayout>
+    </com.google.android.material.appbar.AppBarLayout>
 
     <LinearLayout
         android:layout_width="wrap_content"
@@ -152,12 +153,12 @@
             android:background="@color/white"
             android:orientation="horizontal">
 
-            <android.support.v7.widget.RecyclerView
+            <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/friendlist_recycler"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:orientation="horizontal"
-                android:scrollbars="horizontal"></android.support.v7.widget.RecyclerView>
+                android:scrollbars="horizontal"></androidx.recyclerview.widget.RecyclerView>
 
         </LinearLayout>
 
@@ -211,7 +212,8 @@
             android:layout_height="match_parent"
             android:layout_weight="1.8"
             android:backgroundTint="@color/white"
-            android:hint="Write Stashtag..."
+            android:hint="Write stashtag message..."
+            android:textSize="14dp"
             android:inputType="textLongMessage"
             android:visibility="visible" />
 
