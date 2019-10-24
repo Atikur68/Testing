@@ -10,55 +10,38 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.support.v4.view.GestureDetectorCompat;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
-import android.util.Base64;
+import androidx.core.view.GestureDetectorCompat;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+
 import android.util.Log;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.android.volley.AuthFailureError;
-import com.android.volley.DefaultRetryPolicy;
-import com.android.volley.NetworkResponse;
-import com.android.volley.ParseError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.RetryPolicy;
 import com.android.volley.VolleyError;
-import com.android.volley.VolleyLog;
-import com.android.volley.toolbox.HttpHeaderParser;
-import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.flarze.hashstash.R;
 import com.flarze.hashstash.data.Api;
-import com.flarze.hashstash.data.LocationList;
-import com.flarze.hashstash.data.LocationListAdapter;
-import com.flarze.hashstash.data.VolleyMultipartRequest;
 import com.flarze.hashstash.data.instagram_login.AppPreferences;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.mikhaellopez.circularimageview.CircularImageView;
 import com.squareup.picasso.Picasso;
 
+//import org.apache.commons.io.FileUtils;
+//mport org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.UnsupportedEncodingException;
-import java.util.HashMap;
-import java.util.Hashtable;
-import java.util.Map;
 
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
@@ -269,6 +252,7 @@ public class UserProfileActivity extends AppCompatActivity {
         // use the FileUtils to get the actual file by uri
         File file = FileUtils.getFile(getRealPathFromUri(this, fileUri));
 
+
         RequestBody requestFile = RequestBody.create(
                 MediaType.parse("application/json; charset=utf-8"), file);
 
@@ -281,6 +265,7 @@ public class UserProfileActivity extends AppCompatActivity {
         //------------------------
         long time = System.currentTimeMillis();
         String extension = FilenameUtils.getExtension(file.getAbsolutePath());
+
         String path = time + "." + extension;
 
         Gson gson = new GsonBuilder()

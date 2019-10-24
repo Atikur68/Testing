@@ -1,8 +1,8 @@
 package com.flarze.hashstash.data;
 
 import android.content.Context;
-import android.support.v7.app.AppCompatDelegate;
-import android.support.v7.widget.RecyclerView;
+import androidx.appcompat.app.AppCompatDelegate;
+import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,7 +10,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.flarze.hashstash.R;
-import com.flarze.hashstash.data.instagram_login.AppPreferences;
 import com.squareup.picasso.Picasso;
 
 import java.util.List;

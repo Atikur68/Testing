@@ -1,18 +1,14 @@
 package com.flarze.hashstash.activity;
 
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.os.AsyncTask;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AppCompatActivity;
+
+import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
-import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.Request;
@@ -23,12 +19,9 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.flarze.hashstash.R;
-import com.flarze.hashstash.data.LocationList;
-import com.flarze.hashstash.data.LocationListAdapter;
 import com.flarze.hashstash.data.instagram_login.AppPreferences;
 import com.flarze.hashstash.data.instagram_login.AuthenticationDialog;
 import com.flarze.hashstash.data.instagram_login.AuthenticationListener;
-import com.squareup.picasso.Picasso;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -43,11 +36,6 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-
-import static android.Manifest.permission.ACCESS_FINE_LOCATION;
-import static android.Manifest.permission.READ_CONTACTS;
-import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
-import static com.flarze.hashstash.activity.MapsActivity.RequestPermissionCode;
 
 public class SigninActivity extends AppCompatActivity implements AuthenticationListener {
 

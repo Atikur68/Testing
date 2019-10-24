@@ -3,9 +3,9 @@ package com.flarze.hashstash.activity;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
-import android.support.v4.view.PagerAdapter;
-import android.support.v4.view.ViewPager;
-import android.support.v7.app.AppCompatActivity;
+import androidx.viewpager.widget.PagerAdapter;
+import androidx.viewpager.widget.ViewPager;
+import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,11 +17,7 @@ import android.widget.TextView;
 
 import com.flarze.hashstash.R;
 import com.flarze.hashstash.data.ColorShades;
-import com.flarze.hashstash.data.SharedPref;
 import com.viewpagerindicator.CirclePageIndicator;
-
-import static com.flarze.hashstash.data.Constants.IS_LOGIN;
-import static com.flarze.hashstash.data.Constants.NOT_FIRST_TIME;
 
 public class SlideShowActivity extends AppCompatActivity {
     private static final String SAVING_STATE_SLIDER_ANIMATION = "SliderAnimationSavingState";
