@@ -1,6 +1,7 @@
 package com.flarze.hashstash.activity;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.ContentValues;
@@ -22,6 +23,10 @@ import android.provider.MediaStore;
 import android.provider.Settings;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
+import com.github.amlcurran.showcaseview.ShowcaseView;
+import com.github.amlcurran.showcaseview.targets.ActionViewTarget;
+import com.github.amlcurran.showcaseview.targets.ViewTarget;
 import com.google.android.material.navigation.NavigationView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -33,8 +38,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.appcompat.widget.Toolbar;
+
+import android.text.TextPaint;
 import android.util.Log;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
@@ -191,6 +199,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private Uri selectedImage;
     private String pathss = "";
     private ProgressDialog progressDialog;
+    private static boolean tutorialShown = false;
 
     public static String getRealPathFromUri(Context context, Uri contentUri) {
         Cursor cursor = null;
@@ -315,6 +324,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
 
+
+
         userProfilePic.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -359,6 +370,47 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 dialog.show();
             }
         });
+/*
+
+*/
+
+        if (tutorialShown == false) {
+            ShowcaseView viewHash = new ShowcaseView.Builder(this)
+                    .setTarget(new ViewTarget(txt_hash_start))
+                    .setContentText("Write a short message (hash) of your experience to the world ... ")
+                    .setStyle(3)
+                    .build();
+
+            ShowcaseView viewSwitch = new ShowcaseView.Builder(this)
+                    .setTarget(new ViewTarget(hashStashSwitch))
+                    .setContentText("Toggle between hashes- public messages- and stashes- your private messages- around you ...")
+                    .setStyle(3)
+                    .build();
+            viewSwitch.hide();
+
+            ShowcaseView viewStash = new ShowcaseView.Builder(this)
+                    .setTarget(new ViewTarget(btn_shash))
+                    .setContentText("Share your experience privately between you and the venue hosts ...")
+                    .setStyle(3)
+                    .build();
+            viewStash.hide();
+
+            viewHash.overrideButtonClick(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                     viewHash.hide();
+                     viewSwitch.show();
+                     viewSwitch.overrideButtonClick(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            viewSwitch.hide();
+                            viewStash.show();
+                            tutorialShown = true;
+                        }
+                    });
+                }
+            });
+        }
 
         txt_hash_start.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -380,9 +432,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         btn_world_maps.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(MapsActivity.this, MapsActivity.class);
-                intent.putExtra("switch", "hash");
-                startActivity(intent);
+                //Intent intent = new Intent(MapsActivity.this, MapsActivity.class);
+                //intent.putExtra("switch", "hash");
+                //startActivity(intent);
+
+                startLocationUpdates();
             }
         });
 
@@ -679,7 +733,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             drawer.closeDrawer(GravityCompat.START);
         } else {
             //super.onBackPressed();
-            startActivity(new Intent(MapsActivity.this, SigninActivity.class));
+            //startActivity(new Intent(MapsActivity.this, SigninActivity.class));
         }
     }
 
@@ -884,7 +938,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         } else {
             progressDialog = new ProgressDialog(MapsActivity.this);
             if (selector.contentEquals("HASH")) {
-                progressDialog.setMessage("Your hash will last for 2 minutes"); // Setting Message
+                progressDialog.setMessage("Sharing your hash with people nearby for two minutes"); // Setting Message
                 // progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER); // Progress Dialog Style Spinner
                 progressDialog.show(); // Display Progress Dialog
             }
@@ -964,7 +1018,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         if (selector.contentEquals("HASH")) {
             progressDialog = new ProgressDialog(MapsActivity.this);
-            progressDialog.setMessage("Your hash will last for 2 minutes"); // Setting Message
+            progressDialog.setMessage("Sharing your hash with people nearby for two minutes"); // Setting Message
             // progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER); // Progress Dialog Style Spinner
             progressDialog.show(); // Display Progress Dialog
         }
@@ -992,7 +1046,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private void reloadActivity() {
         progressDialog.dismiss();
-        startActivity(new Intent(this, this.getClass()));
+        //startActivity(new Intent(this, this.getClass()));
+        startLocationUpdates();
     }
 
     private String getAddressFromLatLng(LatLng latLng) {
@@ -1024,7 +1079,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 String filePath = System.currentTimeMillis() + ".jpeg";
 
                 try {
-                    fout = openFileOutput(filePath, MODE_WORLD_READABLE);
+                    fout = openFileOutput(filePath, Context.MODE_PRIVATE);
 
                     // Write the string to the file
                     bitmap.compress(Bitmap.CompressFormat.JPEG, 90, fout);
